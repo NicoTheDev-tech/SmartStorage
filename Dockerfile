@@ -4,11 +4,11 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Restore
-RUN dotnet restore
+# Restore the solution
+RUN dotnet restore SmartStorage.sln
 
-# Publish
-RUN dotnet publish -c Release -o /out
+# Publish the main project
+RUN dotnet publish SmartStorage/SmartStorage.csproj -c Release -o /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
