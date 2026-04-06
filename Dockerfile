@@ -4,8 +4,11 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Restore the solution
-RUN dotnet restore SmartStorage.sln
+# List files to debug - remove after it works
+RUN ls -la
+
+# Restore the main project directly
+RUN dotnet restore SmartStorage/SmartStorage.csproj
 
 # Publish the main project
 RUN dotnet publish SmartStorage/SmartStorage.csproj -c Release -o /out
