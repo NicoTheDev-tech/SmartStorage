@@ -4,17 +4,11 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Restore Core project
-RUN dotnet restore SmartStorage.Core/SmartStorage.Core.csproj
+# Build the entire solution in one go
+RUN dotnet build -c Release
 
-# Restore Infrastructure project
-RUN dotnet restore SmartStorage.Infrastructure/SmartStorage.Infrastructure.csproj
-
-# Restore main project
-RUN dotnet restore SmartStorage/SmartStorage.csproj
-
-# Publish the main project
-RUN dotnet publish SmartStorage/SmartStorage.csproj -c Release -o /out
+# Publish
+RUN dotnet publish -c Release -o /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
