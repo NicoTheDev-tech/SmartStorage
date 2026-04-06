@@ -4,10 +4,13 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# List files to debug - remove after it works
-RUN ls -la
+# Restore Core project
+RUN dotnet restore SmartStorage.Core/SmartStorage.Core.csproj
 
-# Restore the main project directly
+# Restore Infrastructure project
+RUN dotnet restore SmartStorage.Infrastructure/SmartStorage.Infrastructure.csproj
+
+# Restore main project
 RUN dotnet restore SmartStorage/SmartStorage.csproj
 
 # Publish the main project
