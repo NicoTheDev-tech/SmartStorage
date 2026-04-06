@@ -1,0 +1,44 @@
+﻿@model IEnumerable<SmartStorage.Core.DTOs.InvoiceDto>
+@{
+    ViewData["Title"] = "My Payments";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">My Payments</h1>
+        <div class="gold-line mx-auto"></div>
+        <p class="text-muted mt-3">View your recent payments</p>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var payment in Model.Where(p => p.Status == "Paid"))
+            {
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="fw-bold">@payment.InvoiceNumber</h5>
+                            <p class="text-muted">Paid on: @payment.PaymentDate?.ToString("dd MMM yyyy")</p>
+                            <hr />
+                            <p><strong>Amount Paid:</strong> R @payment.AmountPaid.ToString("N2")</p>
+                            <p><strong>Payment Method:</strong> @payment.PaymentMethod</p>
+                            <p><strong>Reference:</strong> @payment.PaymentReference</p>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-4">
+                            <a href="/Invoices/Details/@payment.Id" class="btn btn-outline-gold">View Invoice</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-credit-card fs-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No Payment History</h4>
+            <p class="text-muted">You haven't made any payments yet.</p>
+        </div>
+    }
+</div>

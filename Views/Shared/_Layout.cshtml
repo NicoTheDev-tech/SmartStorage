@@ -1,0 +1,461 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SmartStorage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        :root {
+            --silver-light: #F5F5F5;
+            --silver: #E0E0E0;
+            --silver-dark: #A0A0A0;
+            --silver-grey: #808080;
+            --gold: #D4AF37;
+            --gold-dark: #B8860B;
+            --gold-light: #F5E6B0;
+            --charcoal: #2C2C2C;
+            --white: #FFFFFF;
+            --black: #1A1A1A;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .dropdown-menu {
+            background-color: var(--charcoal);
+            border: 1px solid var(--gold);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .dropdown-item {
+            color: var(--silver);
+            padding: 10px 20px;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--gold);
+            color: var(--charcoal);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 8px;
+            width: 20px;
+        }
+
+        .dropdown-divider {
+            border-top-color: var(--gold);
+        }
+
+        .navbar-nav .nav-link.active {
+            color: var(--gold) !important;
+            font-weight: 600;
+        }
+
+        .text-gold {
+            color: var(--gold);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: var(--black);
+            font-weight: 600;
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+            color: var(--black);
+        }
+
+        .footer {
+            background: var(--charcoal);
+            color: var(--silver);
+            padding: 60px 0 20px;
+            margin-top: 50px;
+        }
+
+        .footer h5 {
+            color: var(--gold);
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--silver);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            padding-left: 5px;
+        }
+
+        .contact-info p {
+            margin-bottom: 12px;
+        }
+
+        .contact-info i {
+            color: var(--gold);
+            margin-right: 10px;
+            width: 25px;
+        }
+
+        .social-links {
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            color: var(--silver);
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--gold);
+            color: var(--charcoal);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+        }
+        
+        .navbar-nav.ms-auto {
+            margin-left: auto !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="bi bi-box-seam"></i> SmartStorage
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    @if (User?.Identity?.IsAuthenticated == true)
+                    {
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <!-- ADMIN NAVIGATION -->
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Reservations"><i class="bi bi-journal-bookmark-fill"></i> Reservations</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Contracts"><i class="bi bi-file-text"></i> Contracts</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Billing"><i class="bi bi-currency-dollar"></i> Billing & Payments</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/StorageUnits"><i class="bi bi-box-seam"></i> Storage Units</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Delivery"><i class="bi bi-truck"></i> Delivery & Logistics</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Reports"><i class="bi bi-graph-up"></i> Reports</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Users"><i class="bi bi-people"></i> Users</a>
+                                </li>
+                            </ul>
+                            
+                            <ul class="navbar-nav ms-auto">
+                                <li class="nav-item">
+                                    <span class="nav-link text-gold">
+                                        <i class="bi bi-person-circle"></i> Hi, Admin!
+                                    </span>
+                                </li>
+                                <li class="nav-item">
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        <button type="submit" class="nav-link btn btn-link text-light">
+                                            <i class="bi bi-box-arrow-right"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        }
+                        else if (User.IsInRole("Staff"))
+                        {
+                            <!-- STAFF NAVIGATION -->
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Staff/Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Staff/GoodsIntake"><i class="bi bi-box-seam"></i> Goods Intake</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Staff/StorageAllocation"><i class="bi bi-building"></i> Storage Allocation</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Staff/StorageOperations"><i class="bi bi-gear"></i> Storage Operations</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Staff/DeliveryHandling"><i class="bi bi-truck"></i> Delivery Handling</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Staff/Tasks"><i class="bi bi-list-check"></i> View Assigned Tasks</a>
+                                </li>
+                            </ul>
+                            
+                            <ul class="navbar-nav ms-auto">
+                                <li class="nav-item">
+                                    <span class="nav-link text-gold">
+                                        <i class="bi bi-person-badge"></i> Hi, Staff!
+                                    </span>
+                                </li>
+                                <li class="nav-item">
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        <button type="submit" class="nav-link btn btn-link text-light">
+                                            <i class="bi bi-box-arrow-right"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        }
+                        else
+                        {
+                            <!-- CUSTOMER NAVIGATION -->
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Customer/Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Reserve"><i class="bi bi-calendar-plus"></i> Reserve Unit</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Customer/MyStorage"><i class="bi bi-box-seam"></i> My Storage</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Customer/MyBookings"><i class="bi bi-journal-bookmark-fill"></i> My Bookings</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Customer/MyContracts"><i class="bi bi-file-text"></i> My Contracts</a>
+                                </li>
+                                
+                                <!-- Billing Dropdown (Customer) -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="billingDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-receipt"></i> Billing
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="/Customer/Invoices"><i class="bi bi-file-text"></i> Invoices</a></li>
+                                        <li><a class="dropdown-item" href="/Customer/Payments"><i class="bi bi-credit-card"></i> Payments</a></li>
+                                        <li><a class="dropdown-item" href="/Customer/PaymentHistory"><i class="bi bi-clock-history"></i> Payment History</a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Services Dropdown (Customer) -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-tools"></i> Services
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="/Customer/DeliverySchedule"><i class="bi bi-truck"></i> Delivery Schedule</a></li>
+                                        <li><a class="dropdown-item" href="/Customer/Cartage"><i class="bi bi-truck-front"></i> Cartage Services</a></li>
+                                        <li><a class="dropdown-item" href="/Customer/VehicleServices"><i class="bi bi-wrench"></i> Vehicle Services</a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Profile Dropdown (Customer) -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-person-circle"></i> My Profile
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="/Customer/Profile"><i class="bi bi-person-gear"></i> Update Profile Info</a></li>
+                                        <li><a class="dropdown-item" href="/Customer/ChangePassword"><i class="bi bi-shield-lock"></i> Change Password</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                                <button type="submit" class="dropdown-item" style="cursor: pointer;">
+                                                    <i class="bi bi-box-arrow-right"></i> Log Out
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            
+                            <ul class="navbar-nav ms-auto">
+                                @{
+                                    var preferredName = User?.Claims?.FirstOrDefault(c => c.Type == "PreferredName")?.Value;
+                                    if (string.IsNullOrEmpty(preferredName))
+                                    {
+                                        var email = User?.Identity?.Name ?? "";
+                                        preferredName = email.Split('@')[0];
+                                    }
+                                }
+                                <li class="nav-item">
+                                    <span class="nav-link text-gold">
+                                        <i class="bi bi-person-circle"></i> Hi, @preferredName!
+                                    </span>
+                                </li>
+                            </ul>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Public Navigation (Not Logged In) -->
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/"><i class="bi bi-house-door"></i> Home</a>
+                            </li>
+                        </ul>
+                        
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Account" asp-action="Register">
+                                    <i class="bi bi-person-plus"></i> Register
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Account" asp-action="Login">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                </a>
+                            </li>
+                        </ul>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container-fluid px-0">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5><i class="bi bi-box-seam"></i> SmartStorage</h5>
+                    <p>Your trusted partner for secure storage and logistics solutions in South Africa.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="footer-links">
+                        <li><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+                        @if (User?.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li><a href="/Admin/Dashboard"><i class="bi bi-speedometer2"></i> Admin Dashboard</a></li>
+                            }
+                            else if (User.IsInRole("Staff"))
+                            {
+                                <li><a href="/Staff/Dashboard"><i class="bi bi-speedometer2"></i> Staff Dashboard</a></li>
+                                <li><a href="/Staff/GoodsIntake"><i class="bi bi-box-seam"></i> Goods Intake</a></li>
+                                <li><a href="/Staff/DeliveryHandling"><i class="bi bi-truck"></i> Delivery Handling</a></li>
+                            }
+                            else
+                            {
+                                <li><a href="/Customer/Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                                <li><a href="/Reserve"><i class="bi bi-calendar-plus"></i> Reserve Unit</a></li>
+                                <li><a href="/Customer/MyStorage"><i class="bi bi-box-seam"></i> My Storage</a></li>
+                                <li><a href="/Customer/MyBookings"><i class="bi bi-journal-bookmark-fill"></i> My Bookings</a></li>
+                                <li><a href="/Customer/MyContracts"><i class="bi bi-file-text"></i> My Contracts</a></li>
+                                <li><a href="/Customer/Invoices"><i class="bi bi-receipt"></i> My Invoices</a></li>
+                            }
+                        }
+                        else
+                        {
+                            <li><a asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+                            <li><a asp-controller="Account" asp-action="Register"><i class="bi bi-person-plus"></i> Register</a></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Contact Info</h5>
+                    <div class="contact-info">
+                        <p><i class="bi bi-envelope"></i> snothithabangnicolas@gmail.com</p>
+                        <p><i class="bi bi-telephone"></i> +27 67 931 4668</p>
+                        <p><i class="bi bi-geo-alt"></i> Durban, South Africa</p>
+                        <p><i class="bi bi-clock"></i> Mon-Sun: 24/7 Access</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; @DateTime.Now.Year SmartStorage - All Rights Reserved | Premium Storage Solutions South Africa</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+        
+        $(document).ready(function() {
+            var currentUrl = window.location.pathname;
+            $('.navbar-nav .nav-link').each(function() {
+                if (currentUrl === $(this).attr('href')) {
+                    $(this).addClass('active');
+                }
+            });
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

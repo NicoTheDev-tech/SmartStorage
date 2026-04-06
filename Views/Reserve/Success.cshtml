@@ -1,0 +1,107 @@
+﻿@model SmartStorage.Core.DTOs.BookingResponseDto
+@{
+    ViewData["Title"] = "Booking Confirmed";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <i class="bi bi-check-circle-fill fs-1 text-white"></i>
+                    <h2 class="text-white mb-0 mt-2">Booking Confirmed!</h2>
+                    <p class="text-white-50 mb-0">Your storage unit has been reserved successfully</p>
+                </div>
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-box-seam fs-1 text-gold"></i>
+                        <h4 class="mt-3">Thank you for choosing SmartStorage!</h4>
+                        <p class="text-muted">Your booking has been confirmed and is pending payment</p>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Booking Number:</strong> @Model.BookingNumber
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <small class="text-muted">Storage Unit</small>
+                                <h5 class="mb-0">Unit @Model.UnitNumber</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <small class="text-muted">Total Amount</small>
+                                <h5 class="mb-0 text-gold">R @Model.TotalAmount.ToString("N0")</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <small class="text-muted">Start Date</small>
+                                <h5 class="mb-0">@Model.StartDate.ToString("dd MMMM yyyy")</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <small class="text-muted">End Date</small>
+                                <h5 class="mb-0">@Model.EndDate.ToString("dd MMMM yyyy")</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-warning bg-opacity-10 rounded-3">
+                        <i class="bi bi-clock-history me-2"></i>
+                        <strong>Pending Payment</strong>
+                        <p class="mb-0 mt-1 small">Your booking is reserved for 48 hours. Complete payment to confirm your storage unit.</p>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="/Invoices/Pay/@Model.Id" class="btn btn-gold btn-lg">
+                            <i class="bi bi-credit-card"></i> Proceed to Payment
+                        </a>
+                        <a href="/Customer/MyBookings" class="btn btn-outline-gold">
+                            <i class="bi bi-journal-bookmark-fill"></i> View My Bookings
+                        </a>
+                        <a href="/Reserve" class="btn btn-outline-secondary">
+                            <i class="bi bi-plus-circle"></i> Make Another Booking
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-envelope"></i> A confirmation email has been sent to your registered email address
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        color: #2c2c2c;
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+    }
+</style>

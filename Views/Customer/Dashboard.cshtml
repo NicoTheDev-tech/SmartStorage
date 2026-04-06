@@ -1,0 +1,229 @@
+﻿@model SmartStorage.ViewModels.CustomerDashboardViewModel
+@{
+    ViewData["Title"] = "Customer Dashboard";
+}
+
+<div class="container py-4">
+
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #F5F5F5 0%, #E0E0E0 100%);">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            @{
+                                var welcomeName = !string.IsNullOrEmpty(Model.ClientPreferredName) 
+                                    ? Model.ClientPreferredName 
+                                    : (Model.ClientName?.Split(' ')[0] ?? "Customer");
+                            }
+                            <h1 class="text-dark mb-2">Welcome back, @welcomeName! 👋</h1>
+                            <p class="text-secondary mb-0">Here's an overview of your SmartStorage account</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <i class="bi bi-person-circle text-gold" style="font-size: 4rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-box-seam fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.ActiveBookingsCount</h3>
+                    <p class="text-muted mb-0">Active Bookings</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-file-text fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.ActiveContractsCount</h3>
+                    <p class="text-muted mb-0">Active Contracts</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-receipt fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.RecentInvoices.Count()</h3>
+                    <p class="text-muted mb-0">Total Invoices</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-truck fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.UpcomingDeliveriesCount</h3>
+                    <p class="text-muted mb-0">Upcoming Deliveries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Recent Bookings -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-journal-bookmark-fill text-gold"></i> Recent Bookings
+                        </h5>
+                        <a href="/Customer/MyBookings" class="btn btn-sm btn-outline-gold">View All</a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if (Model.RecentBookings != null && Model.RecentBookings.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var booking in Model.RecentBookings)
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="mb-0 fw-semibold">Unit @booking.UnitNumber</p>
+                                            <small class="text-muted">
+                                                @booking.StartDate.ToString("dd MMM yyyy") - 
+                                                @booking.EndDate.ToString("dd MMM yyyy")
+                                            </small>
+                                        </div>
+
+                                        <div class="text-end">
+                                            <!-- Status Badge -->
+                                            <span class="badge bg-@(booking.Status == "Active" ? "success"
+                                                : booking.Status == "Confirmed" ? "info"
+                                                : booking.Status == "Pending" ? "warning"
+                                                : "secondary") me-2">
+                                                @booking.Status
+                                            </span>
+
+                                            <!-- Cancel Button -->
+                                            @if (booking.Status == "Pending" || booking.Status == "Confirmed")
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="cancelBooking(@booking.Id, '@booking.BookingNumber')">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No recent bookings</p>
+                        <div class="text-center">
+                            <a href="/Reserve" class="btn btn-gold btn-sm">Make a Booking</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Invoices -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-receipt text-gold"></i> Recent Invoices
+                        </h5>
+                        <a href="/Customer/Invoices" class="btn btn-sm btn-outline-gold">View All</a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if (Model.RecentInvoices != null && Model.RecentInvoices.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var invoice in Model.RecentInvoices)
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="mb-0 fw-semibold">@invoice.InvoiceNumber</p>
+                                            <small class="text-muted">
+                                                Due: @invoice.DueDate.ToString("dd MMM yyyy")
+                                            </small>
+                                        </div>
+
+                                        <div class="text-end">
+                                            <span class="fw-bold text-gold">
+                                                R @invoice.Amount.ToString("N2")
+                                            </span>
+
+                                            @if (invoice.Status != "Paid")
+                                            {
+                                                <a href="/Invoices/Pay/@invoice.Id"
+                                                   class="btn btn-sm btn-gold ms-2">Pay</a>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success ms-2">Paid</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No recent invoices</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Cancel Booking Script -->
+<script>
+    function cancelBooking(bookingId, bookingNumber) {
+        if (confirm(`Cancel booking ${bookingNumber}?`)) {
+            fetch(`/Customer/CancelBooking/${bookingId}`, {
+                method: 'POST'
+            })
+            .then(res => {
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    alert("Failed to cancel booking.");
+                }
+            })
+            .catch(() => alert("Error cancelling booking."));
+        }
+    }
+</script>
+
+<style>
+    .text-gold { color: var(--gold); }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37, #B8860B);
+        color: #2c2c2c;
+        border-radius: 50px;
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        border-radius: 50px;
+    }
+</style>

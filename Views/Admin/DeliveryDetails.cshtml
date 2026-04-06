@@ -1,0 +1,143 @@
+﻿@model SmartStorage.Core.Entities.DeliverySchedule
+@{
+    ViewData["Title"] = "Delivery Details";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="text-white mb-0">
+                                <i class="bi bi-truck"></i> @Model.ScheduleNumber
+                            </h3>
+                            <p class="text-white-50 mb-0">Delivery Schedule Details</p>
+                        </div>
+                        <div>
+                            @{
+                                var statusClass = Model.Status.ToString() switch
+                                {
+                                    "Pending" => "warning",
+                                    "Confirmed" => "info",
+                                    "Completed" => "success",
+                                    "Cancelled" => "danger",
+                                    _ => "secondary"
+                                };
+                            }
+                            <span class="badge bg-@statusClass fs-6 px-3 py-2">@Model.Status</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-box"></i> Storage Details</h6>
+                                <p class="mb-1"><strong>Unit Number:</strong> @Model.Booking?.StorageUnit?.UnitNumber</p>
+                                <p class="mb-0"><strong>Booking Reference:</strong> @Model.Booking?.BookingNumber</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-calendar"></i> Schedule Details</h6>
+                                <p class="mb-1"><strong>Type:</strong> @Model.DeliveryType</p>
+                                <p class="mb-1"><strong>Date:</strong> @Model.ScheduledDate.ToString("dddd, dd MMMM yyyy")</p>
+                                <p class="mb-0"><strong>Time Slot:</strong> @Model.TimeSlot</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-geo-alt"></i> Address Details</h6>
+                                <p class="mb-1"><strong>Pickup Address:</strong> @Model.PickupAddress</p>
+                                <p class="mb-0"><strong>Delivery Address:</strong> @Model.DeliveryAddress</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-box-seam"></i> Goods Details</h6>
+                                <p class="mb-1"><strong>Description:</strong> @Model.GoodsDescription</p>
+                                <p class="mb-1"><strong>Item Count:</strong> @Model.ItemCount items</p>
+                                <p class="mb-0"><strong>Estimated Weight:</strong> @Model.EstimatedWeight kg</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-person"></i> Contact Information</h6>
+                                <p class="mb-1"><strong>Contact Person:</strong> @(Model.ContactPerson ?? "Not provided")</p>
+                                <p class="mb-0"><strong>Contact Phone:</strong> @(Model.ContactPhone ?? "Not provided")</p>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.SpecialInstructions))
+                        {
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Special Instructions:</strong> @Model.SpecialInstructions
+                                </div>
+                            </div>
+                        }
+                        @if (Model.AssignedDriver != null)
+                        {
+                            <div class="col-md-12">
+                                <div class="alert alert-success">
+                                    <i class="bi bi-person-badge me-2"></i>
+                                    <strong>Assigned Driver:</strong> @Model.AssignedDriver.FullName
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 pb-4">
+                    @if (Model.Status.ToString() == "Pending")
+                    {
+                        <form asp-action="ConfirmDelivery" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-gold" onclick="return confirm('Confirm this delivery schedule?')">
+                                <i class="bi bi-check-circle"></i> Confirm Schedule
+                            </button>
+                        </form>
+                    }
+                    @if (Model.Status.ToString() == "Confirmed")
+                    {
+                        <form asp-action="CompleteDelivery" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Mark this delivery as completed?')">
+                                <i class="bi bi-check2-circle"></i> Mark Completed
+                            </button>
+                        </form>
+                    }
+                    <a href="/Admin/Delivery" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+        border-radius: 50px;
+        padding: 10px 25px;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+    }
+    .btn-success {
+        border-radius: 50px;
+        padding: 10px 25px;
+    }
+    .btn-outline-secondary {
+        border-radius: 50px;
+        padding: 10px 25px;
+    }
+</style>

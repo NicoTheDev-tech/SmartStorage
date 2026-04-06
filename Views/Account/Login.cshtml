@@ -1,0 +1,50 @@
+﻿@model SmartStorage.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>Welcome Back
+                    </h3>
+                    <p class="text-light mt-2 mb-0">Login to your SmartStorage account</p>
+                </div>
+                <div class="card-body p-5">
+                    <form asp-action="Login" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email Address</label>
+                            <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2">Login</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <p class="mb-0">Don't have an account? <a asp-action="Register" class="text-decoration-none">Register now</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

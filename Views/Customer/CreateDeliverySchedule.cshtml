@@ -1,0 +1,153 @@
+﻿@model SmartStorage.Core.DTOs.CreateDeliveryScheduleDto
+@{
+    ViewData["Title"] = "Schedule Delivery";
+    var bookings = ViewBag.Bookings as IEnumerable<SmartStorage.Core.DTOs.BookingResponseDto>;
+    var timeSlots = ViewBag.TimeSlots as IEnumerable<string>;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <i class="bi bi-truck fs-1 text-white"></i>
+                    <h3 class="text-white mb-0 mt-2">Schedule Delivery</h3>
+                    <p class="text-white-50 mb-0">Arrange pickup or drop-off for your items</p>
+                </div>
+                <div class="card-body p-5">
+                    <form asp-action="CreateDeliverySchedule" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="BookingId" class="form-label">Select Booking</label>
+                            <select asp-for="BookingId" class="form-select" required>
+                                <option value="">-- Select a booking --</option>
+                                @if (bookings != null)
+                                {
+                                    @foreach (var booking in bookings)
+                                    {
+                                        <option value="@booking.Id">@booking.BookingNumber - Unit @booking.UnitNumber (@booking.StartDate.ToString("dd MMM yyyy") to @booking.EndDate.ToString("dd MMM yyyy"))</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="BookingId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DeliveryType" class="form-label">Service Type</label>
+                            <select asp-for="DeliveryType" class="form-select" required>
+                                <option value="">-- Select service type --</option>
+                                <option value="Pickup">Pickup - We collect your items from you</option>
+                                <option value="Dropoff">Dropoff - You bring items to our facility</option>
+                                <option value="Collection">Collection - We deliver items to your location</option>
+                            </select>
+                            <span asp-validation-for="DeliveryType" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ScheduledDate" class="form-label">Scheduled Date</label>
+                                <input asp-for="ScheduledDate" class="form-control" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                                <span asp-validation-for="ScheduledDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TimeSlot" class="form-label">Time Slot</label>
+                                <select asp-for="TimeSlot" class="form-select" required>
+                                    <option value="">-- Select time slot --</option>
+                                    @if (timeSlots != null)
+                                    {
+                                        @foreach (var slot in timeSlots)
+                                        {
+                                            <option value="@slot">@slot</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="TimeSlot" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PickupAddress" class="form-label">Pickup Address</label>
+                                <textarea asp-for="PickupAddress" class="form-control" rows="2" placeholder="Enter pickup address"></textarea>
+                                <span asp-validation-for="PickupAddress" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DeliveryAddress" class="form-label">Delivery Address</label>
+                                <textarea asp-for="DeliveryAddress" class="form-control" rows="2" placeholder="Enter delivery address"></textarea>
+                                <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GoodsDescription" class="form-label">Goods Description</label>
+                            <textarea asp-for="GoodsDescription" class="form-control" rows="2" placeholder="Describe the items to be delivered"></textarea>
+                            <span asp-validation-for="GoodsDescription" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ItemCount" class="form-label">Number of Items</label>
+                                <input asp-for="ItemCount" class="form-control" type="number" min="1" value="1" />
+                                <span asp-validation-for="ItemCount" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EstimatedWeight" class="form-label">Estimated Weight (kg)</label>
+                                <input asp-for="EstimatedWeight" class="form-control" type="number" step="1" placeholder="e.g., 50" />
+                                <span asp-validation-for="EstimatedWeight" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SpecialInstructions" class="form-label">Special Instructions</label>
+                            <textarea asp-for="SpecialInstructions" class="form-control" rows="2" placeholder="Any special handling instructions?"></textarea>
+                            <span asp-validation-for="SpecialInstructions" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ContactPerson" class="form-label">Contact Person</label>
+                                <input asp-for="ContactPerson" class="form-control" placeholder="Name of contact person" />
+                                <span asp-validation-for="ContactPerson" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ContactPhone" class="form-label">Contact Phone</label>
+                                <input asp-for="ContactPhone" class="form-control" placeholder="Phone number" />
+                                <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-gold w-100 py-2">
+                                <i class="bi bi-check-circle"></i> Schedule Delivery
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <a href="/Customer/DeliverySchedule" class="text-decoration-none">
+                        <i class="bi bi-arrow-left"></i> Back to Delivery Schedule
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        color: #2c2c2c;
+    }
+</style>

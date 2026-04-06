@@ -1,0 +1,71 @@
+﻿@model IEnumerable<SmartStorage.Core.Entities.DeliverySchedule>
+@{
+    ViewData["Title"] = "My Tasks";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold">My Tasks</h1>
+        <p class="text-muted">Your assigned deliveries and tasks</p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Schedule #</th>
+                            <th>Client</th>
+                            <th>Type</th>
+                            <th>Address</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var task in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@task.ScheduleNumber</td>
+                                    <td>@(task.Booking?.Client?.FullName ?? "Unknown")</td>
+                                    <td>@task.DeliveryType</td>
+                                    <td>@(task.DeliveryType.ToString() == "Pickup" ? task.PickupAddress : task.DeliveryAddress)</td>
+                                    <td>@task.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-@(task.Status.ToString() == "Confirmed" ? "info" : "warning")">@task.Status</span>
+                                    </td>
+                                    <td>
+                                        @if (task.Status.ToString() == "Confirmed")
+                                        {
+                                            <form asp-action="CompleteDelivery" asp-route-id="@task.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-success">Mark Complete</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">In Progress</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-check-circle fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No tasks assigned</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,49 @@
+﻿@model IEnumerable<SmartStorage.Core.DTOs.ContractResponseDto>
+@{
+    ViewData["Title"] = "My Contracts";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">My Contracts</h1>
+        <div class="gold-line mx-auto"></div>
+        <p class="text-muted mt-3">View all your storage contracts</p>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var contract in Model)
+            {
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="fw-bold">@contract.ContractNumber</h5>
+                                    <p class="text-muted">Unit @contract.UnitNumber</p>
+                                </div>
+                                <span class="badge bg-@(contract.Status == "Active" ? "success" : "info")">@contract.Status</span>
+                            </div>
+                            <hr />
+                            <p><strong>Period:</strong> @contract.StartDate.ToString("dd MMM yyyy") - @contract.EndDate.ToString("dd MMM yyyy")</p>
+                            <p><strong>Monthly Rate:</strong> R @contract.MonthlyRate.ToString("N0")</p>
+                            <p><strong>Total Value:</strong> R @contract.TotalContractValue.ToString("N2")</p>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-4">
+                            <a href="/Contracts/View/@contract.Id" class="btn btn-outline-gold">View Contract</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-file-text fs-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No Contracts Found</h4>
+            <p class="text-muted">You don't have any contracts yet.</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,117 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">User Management</h1>
+            <p class="text-muted">Manage all system users and their roles</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Email Confirmed</th>
+                            <th>Lockout Enabled</th>
+                            <th>Roles</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@user.Email</td>
+                                <td>@user.UserName</td>
+                                <td>
+                                    @if (user.EmailConfirmed)
+                                    {
+                                        <span class="badge bg-success">Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">No</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (user.LockoutEnabled)
+                                    {
+                                        <span class="badge bg-danger">Locked</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        var userRoles = ViewBag.UserRoles as Dictionary<string, List<string>>;
+                                        var roles = userRoles?.ContainsKey(user.Id) == true ? userRoles[user.Id] : new List<string>();
+                                    }
+                                    @foreach (var role in roles)
+                                    {
+                                        <span class="badge bg-gold me-1">@role</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        @if (user.LockoutEnabled)
+                                        {
+                                            <form asp-action="UnblockUser" asp-route-id="@user.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-success">Unblock</button>
+                                            </form>
+                                        }
+                                        else if (user.Email != "admin@gmail.com")
+                                        {
+                                            <form asp-action="BlockUser" asp-route-id="@user.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-danger">Block</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Protected</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-people fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No users found</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gold {
+        background-color: var(--gold);
+        color: #2c2c2c;
+    }
+</style>

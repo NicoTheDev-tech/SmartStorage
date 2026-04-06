@@ -1,0 +1,182 @@
+﻿@model SmartStorage.ViewModels.StaffDashboardViewModel
+@{
+    ViewData["Title"] = "Staff Dashboard";
+}
+
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-gradient" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="text-white mb-2">Welcome, @Model.StaffName!</h1>
+                            <p class="text-white-50 mb-0">Today's Operations Overview</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <i class="bi bi-person-badge text-white" style="font-size: 4rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.PendingIntakes</h3>
+                    <p class="text-muted mb-0">Pending Goods Intake</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-truck fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.PendingDeliveries</h3>
+                    <p class="text-muted mb-0">Pending Deliveries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-gear fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.InProgressTasks</h3>
+                    <p class="text-muted mb-0">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.CompletedToday</h3>
+                    <p class="text-muted mb-0">Completed Today</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Today's Deliveries -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-truck text-gold"></i> Today's Deliveries</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TodayDeliveries.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var delivery in Model.TodayDeliveries)
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="mb-0 fw-semibold">@delivery.ScheduleNumber</p>
+                                            <small class="text-muted">@delivery.TimeSlot | @delivery.GoodsDescription</small>
+                                        </div>
+                                        <span class="badge bg-@(delivery.Status == "Pending" ? "warning" : "info")">@delivery.Status</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No deliveries scheduled for today</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Schedules -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-clock-history text-gold"></i> Pending Schedules</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.PendingSchedules.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var schedule in Model.PendingSchedules)
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="mb-0 fw-semibold">@schedule.ScheduleNumber</p>
+                                            <small class="text-muted">@schedule.ScheduledDate.ToString("dd MMM") | @schedule.DeliveryType</small>
+                                        </div>
+                                        <a href="/Staff/DeliveryHandling" class="btn btn-sm btn-outline-gold">Handle</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No pending schedules</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="mb-3"><i class="bi bi-lightning-charge text-gold"></i> Quick Actions</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="/Staff/GoodsIntake" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-box-seam"></i> Process Intake
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Staff/DeliveryHandling" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-truck"></i> Handle Deliveries
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Staff/StorageOperations" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-building"></i> Storage Operations
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Staff/Tasks" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-list-check"></i> My Tasks
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+        transform: translateY(-2px);
+    }
+</style>

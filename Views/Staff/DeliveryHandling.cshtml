@@ -1,0 +1,87 @@
+﻿@model IEnumerable<SmartStorage.Core.Entities.DeliverySchedule>
+@{
+    ViewData["Title"] = "Delivery Handling";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Delivery Handling</h1>
+            <p class="text-muted">Manage and process deliveries</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Schedule #</th>
+                            <th>Client</th>
+                            <th>Type</th>
+                            <th>Address</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var schedule in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@schedule.ScheduleNumber</td>
+                                    <td>@(schedule.Booking?.Client?.FullName ?? "Unknown")</td>
+                                    <td>@schedule.DeliveryType</td>
+                                    <td>@(schedule.DeliveryType.ToString() == "Pickup" ? schedule.PickupAddress : schedule.DeliveryAddress)</td>
+                                    <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        @{
+                                            var statusClass = schedule.Status.ToString() == "Pending" ? "warning" : "info";
+                                        }
+                                        <span class="badge bg-@statusClass">@schedule.Status</span>
+                                    </td>
+                                    <td>
+                                        @if (schedule.Status.ToString() == "Pending")
+                                        {
+                                            <form asp-action="AssignToSelf" asp-route-id="@schedule.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-primary">Assign to Me</button>
+                                            </form>
+                                        }
+                                        else if (schedule.Status.ToString() == "Confirmed")
+                                        {
+                                            <form asp-action="CompleteDelivery" asp-route-id="@schedule.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-success">Complete</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-truck fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No pending deliveries</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

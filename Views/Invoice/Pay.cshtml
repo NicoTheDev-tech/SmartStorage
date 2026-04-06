@@ -1,0 +1,352 @@
+﻿@{
+    var booking = ViewBag.Booking as SmartStorage.Core.DTOs.BookingResponseDto;
+    ViewData["Title"] = "Secure Payment";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Payment Header -->
+            <div class="text-center mb-4">
+                <div class="card border-0 shadow-sm bg-gradient d-inline-block px-4 py-2 rounded-pill" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <span class="text-white fw-bold"><i class="bi bi-shield-lock"></i> Secure Payment</span>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Payment Form Column -->
+                <div class="col-md-7">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-header bg-white border-0 pt-4">
+                            <h3 class="mb-0 fw-bold">Complete Payment</h3>
+                            <p class="text-muted">Choose your preferred payment method</p>
+                        </div>
+                        <div class="card-body p-4">
+                            @if (TempData["Error"] != null)
+                            {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            }
+
+                            <form asp-action="ProcessPayment" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="bookingId" value="@booking?.Id" />
+                                
+                                <!-- Payment Methods -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Select Payment Method</label>
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="payment-option" data-method="CreditCard">
+                                                <div class="card border-2 h-100">
+                                                    <div class="card-body text-center py-4">
+                                                        <i class="bi bi-credit-card-2-front fs-1 text-gold"></i>
+                                                        <h6 class="mt-2 mb-0">Credit / Debit Card</h6>
+                                                        <small class="text-muted">Visa, Mastercard, American Express</small>
+                                                    </div>
+                                                    <div class="card-footer bg-white border-0 text-center pb-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="paymentMethod" value="CreditCard" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="payment-option" data-method="MobileMoney">
+                                                <div class="card border-2 h-100">
+                                                    <div class="card-body text-center py-4">
+                                                        <i class="bi bi-phone fs-1 text-gold"></i>
+                                                        <h6 class="mt-2 mb-0">Mobile Money</h6>
+                                                        <small class="text-muted">M-Pesa, Airtel Money, MTN MoMo</small>
+                                                    </div>
+                                                    <div class="card-footer bg-white border-0 text-center pb-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="paymentMethod" value="MobileMoney">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="payment-option" data-method="BankTransfer">
+                                                <div class="card border-2 h-100">
+                                                    <div class="card-body text-center py-4">
+                                                        <i class="bi bi-bank fs-1 text-gold"></i>
+                                                        <h6 class="mt-2 mb-0">Bank Transfer</h6>
+                                                        <small class="text-muted">EFT / Wire Transfer</small>
+                                                    </div>
+                                                    <div class="card-footer bg-white border-0 text-center pb-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="paymentMethod" value="BankTransfer">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="payment-option" data-method="PayFast">
+                                                <div class="card border-2 h-100">
+                                                    <div class="card-body text-center py-4">
+                                                        <i class="bi bi-paypal fs-1 text-gold"></i>
+                                                        <h6 class="mt-2 mb-0">PayFast</h6>
+                                                        <small class="text-muted">South Africa's leading payment gateway</small>
+                                                    </div>
+                                                    <div class="card-footer bg-white border-0 text-center pb-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="paymentMethod" value="PayFast">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Details (Conditional) -->
+                                <div id="cardDetails" style="display: none;">
+                                    <div class="card bg-light border-0 p-3 mb-4">
+                                        <h6 class="fw-bold mb-3">Card Details</h6>
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" placeholder="Card Number" id="cardNumber">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="text" class="form-control" placeholder="MM/YY" id="expiry">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="text" class="form-control" placeholder="CVV" id="cvv">
+                                            </div>
+                                            <div class="col-12">
+                                                <input type="text" class="form-control" placeholder="Cardholder Name" id="cardName">
+                                            </div>
+                                        </div>
+                                        <small class="text-muted mt-2">Demo mode: Any card details will work</small>
+                                    </div>
+                                </div>
+
+                                <!-- Mobile Money Details (Conditional) -->
+                                <div id="mobileDetails" style="display: none;">
+                                    <div class="card bg-light border-0 p-3 mb-4">
+                                        <h6 class="fw-bold mb-3">Mobile Money Details</h6>
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <select class="form-select" id="mobileProvider">
+                                                    <option value="">Select Provider</option>
+                                                    <option value="M-Pesa">M-Pesa</option>
+                                                    <option value="Airtel Money">Airtel Money</option>
+                                                    <option value="MTN MoMo">MTN MoMo</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <input type="tel" class="form-control" placeholder="Phone Number" id="mobilePhone">
+                                            </div>
+                                        </div>
+                                        <small class="text-muted mt-2">Demo mode: Any number will work</small>
+                                    </div>
+                                </div>
+
+                                <!-- Bank Transfer Details (Conditional) -->
+                                <div id="bankDetails" style="display: none;">
+                                    <div class="card bg-light border-0 p-3 mb-4">
+                                        <h6 class="fw-bold mb-3">Bank Transfer Instructions</h6>
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-building"></i>
+                                            <strong>SmartStorage Banking Details</strong><br>
+                                            <small>Bank: First National Bank (FNB)<br>
+                                            Account Name: SmartStorage (Pty) Ltd<br>
+                                            Account Number: 628 456 789 01<br>
+                                            Branch Code: 250 655<br>
+                                            Reference: @booking?.BookingNumber</small>
+                                        </div>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="confirmTransfer">
+                                            <label class="form-check-label" for="confirmTransfer">
+                                                I confirm that I have initiated the bank transfer
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- PayFast Details (Conditional) -->
+                                <div id="payfastDetails" style="display: none;">
+                                    <div class="card bg-light border-0 p-3 mb-4">
+                                        <h6 class="fw-bold mb-3">PayFast Payment</h6>
+                                        <div class="text-center py-3">
+                                            <i class="bi bi-paypal fs-1 text-gold"></i>
+                                            <p class="mt-2">You will be redirected to PayFast secure payment gateway</p>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="agreePayFast">
+                                            <label class="form-check-label" for="agreePayFast">
+                                                I agree to proceed with PayFast payment
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-gold w-100 py-3 mt-3" id="payButton">
+                                    <i class="bi bi-lock"></i> Pay R @(booking?.TotalAmount + 75)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary Column -->
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-lg sticky-top" style="top: 20px;">
+                        <div class="card-header bg-white border-0 pt-4">
+                            <h5 class="mb-0 fw-bold"><i class="bi bi-receipt text-gold"></i> Order Summary</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="mb-3 pb-2 border-bottom">
+                                <small class="text-muted">Booking Number</small>
+                                <p class="fw-bold mb-0">@booking?.BookingNumber</p>
+                            </div>
+                            <div class="mb-3 pb-2 border-bottom">
+                                <small class="text-muted">Storage Unit</small>
+                                <p class="fw-bold mb-0">Unit @booking?.UnitNumber</p>
+                            </div>
+                            <div class="mb-3 pb-2 border-bottom">
+                                <small class="text-muted">Duration</small>
+                                <p class="mb-0">@booking?.StartDate.ToString("dd MMM yyyy") - @booking?.EndDate.ToString("dd MMM yyyy")</p>
+                            </div>
+                            <div class="mb-3 pb-2 border-bottom">
+                                <div class="d-flex justify-content-between">
+                                    <span>Storage Fee</span>
+                                    <span>R @booking?.TotalAmount.ToString("N0")</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Admin Fee</span>
+                                    <span>R25</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Security Deposit</span>
+                                    <span>R50</span>
+                                </div>
+                            </div>
+                            <div class="pt-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold fs-5">Total Due</span>
+                                    <span class="fw-bold text-gold fs-5">R @(booking?.TotalAmount + 75)</span>
+                                </div>
+                                <small class="text-muted">Includes admin fee and security deposit</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-4">
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span><i class="bi bi-shield-check"></i> Secure SSL</span>
+                                <span><i class="bi bi-lock"></i> Encrypted</span>
+                                <span><i class="bi bi-credit-card"></i> PCI Compliant</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Payment method selection
+            $('input[name="paymentMethod"]').change(function() {
+                var method = $(this).val();
+                
+                // Hide all detail sections
+                $('#cardDetails, #mobileDetails, #bankDetails, #payfastDetails').hide();
+                
+                // Show relevant details
+                if (method === 'CreditCard') {
+                    $('#cardDetails').show();
+                } else if (method === 'MobileMoney') {
+                    $('#mobileDetails').show();
+                } else if (method === 'BankTransfer') {
+                    $('#bankDetails').show();
+                } else if (method === 'PayFast') {
+                    $('#payfastDetails').show();
+                }
+            });
+            
+            // Payment option card hover effect
+            $('.payment-option').click(function() {
+                $(this).find('input[type="radio"]').prop('checked', true).trigger('change');
+                $('.payment-option .card').removeClass('border-gold');
+                $(this).find('.card').addClass('border-gold');
+            });
+            
+            // Enable pay button by default - remove any disabling
+            $('#payButton').prop('disabled', false);
+            
+            // If bank transfer is selected, require checkbox
+            $('input[name="paymentMethod"]').change(function() {
+                var method = $(this).val();
+                if (method === 'BankTransfer') {
+                    $('#confirmTransfer').change(function() {
+                        if ($(this).is(':checked')) {
+                            $('#payButton').prop('disabled', false);
+                        } else {
+                            $('#payButton').prop('disabled', true);
+                        }
+                    });
+                    if (!$('#confirmTransfer').is(':checked')) {
+                        $('#payButton').prop('disabled', true);
+                    }
+                } else if (method === 'PayFast') {
+                    $('#agreePayFast').change(function() {
+                        if ($(this).is(':checked')) {
+                            $('#payButton').prop('disabled', false);
+                        } else {
+                            $('#payButton').prop('disabled', true);
+                        }
+                    });
+                    if (!$('#agreePayFast').is(':checked')) {
+                        $('#payButton').prop('disabled', true);
+                    }
+                } else {
+                    $('#payButton').prop('disabled', false);
+                }
+            });
+        });
+    </script>
+    <style>
+        .payment-option {
+            cursor: pointer;
+        }
+        .payment-option .card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .payment-option .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .border-gold {
+            border: 2px solid var(--gold) !important;
+            background: rgba(212, 175, 55, 0.05);
+        }
+        .text-gold {
+            color: var(--gold);
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+            color: #2c2c2c;
+            font-weight: 600;
+            border: none;
+        }
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+            color: #2c2c2c;
+        }
+        .sticky-top {
+            position: sticky;
+            top: 20px;
+            z-index: 1;
+        }
+    </style>
+}

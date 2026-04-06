@@ -1,0 +1,46 @@
+﻿@model IEnumerable<SmartStorage.Core.DTOs.ContractResponseDto>
+@{
+    ViewData["Title"] = "My Storage";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">My Storage Units</h1>
+        <div class="gold-line mx-auto"></div>
+        <p class="text-muted mt-3">View and manage your active storage units</p>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var contract in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-white border-0 pt-4">
+                            <h5 class="fw-bold mb-0">Unit @contract.UnitNumber</h5>
+                            <p class="text-muted small">Contract: @contract.ContractNumber</p>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Size:</strong> @contract.UnitSize</p>
+                            <p><strong>Monthly Rate:</strong> R @contract.MonthlyRate.ToString("N0")</p>
+                            <p><strong>Contract Period:</strong> @contract.StartDate.ToString("dd MMM yyyy") - @contract.EndDate.ToString("dd MMM yyyy")</p>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-4">
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-box-seam fs-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No Active Storage Units</h4>
+            <p class="text-muted">You don't have any active storage units yet.</p>
+            <a href="/Reserve" class="btn btn-gold mt-2">Reserve a Unit</a>
+        </div>
+    }
+</div>

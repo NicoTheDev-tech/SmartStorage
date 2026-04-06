@@ -1,0 +1,55 @@
+﻿@model SmartStorage.Core.Entities.Contract
+@{
+    ViewData["Title"] = "Contract Details";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);">
+                    <i class="bi bi-file-text fs-1 text-white"></i>
+                    <h3 class="text-white mb-0 mt-2">Storage Contract</h3>
+                    <p class="text-white-50">@Model.ContractNumber</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <h5>Contract Details</h5>
+                        <p><strong>Unit:</strong> @Model.Booking?.StorageUnit?.UnitNumber</p>
+                        <p><strong>Period:</strong> @Model.StartDate.ToString("dd MMM yyyy") - @Model.EndDate.ToString("dd MMM yyyy")</p>
+                        <p><strong>Monthly Rate:</strong> R @Model.MonthlyRate.ToString("N0")</p>
+                        <p><strong>Total Value:</strong> R @Model.TotalContractValue.ToString("N0")</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Terms and Conditions</h5>
+                        <div class="border p-3 bg-light rounded" style="max-height: 400px; overflow-y: auto;">
+                            <pre style="white-space: pre-wrap; font-family: inherit;">@Model.TermsAndConditions</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill"></i> Contract is ACTIVE
+                    </div>
+                    
+                    <a href="/Customer/MyContracts" class="btn btn-outline-gold w-100">Back to My Contracts</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 10px;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+    }
+</style>

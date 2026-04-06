@@ -1,0 +1,120 @@
+﻿@model SmartStorage.Core.Entities.StorageUnit
+@{
+    ViewData["Title"] = "Create Storage Unit";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <i class="bi bi-box-seam fs-1 text-white"></i>
+                    <h3 class="text-white mb-0 mt-2">Create Storage Unit</h3>
+                    <p class="text-white-50 mb-0">Add a new storage unit to the system</p>
+                </div>
+                <div class="card-body p-5">
+                    <form asp-action="CreateUnit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="UnitNumber" class="form-label">Unit Number</label>
+                                <input asp-for="UnitNumber" class="form-control" placeholder="e.g., A101, B201, C301" />
+                                <span asp-validation-for="UnitNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Size" class="form-label">Size</label>
+                                <select asp-for="Size" class="form-select">
+                                    <option value="">Select Size</option>
+                                    <option value="5x5">5x5 - Small (Up to 50 items)</option>
+                                    <option value="10x10">10x10 - Medium (1-bedroom)</option>
+                                    <option value="10x20">10x20 - Large (2-3 bedroom)</option>
+                                    <option value="20x20">20x20 - Extra Large (Full house)</option>
+                                    <option value="Vehicle Bay">Vehicle Bay - Car Storage</option>
+                                    <option value="Covered Vehicle">Covered Vehicle - Premium Car Storage</option>
+                                    <option value="Boat Storage">Boat Storage</option>
+                                    <option value="RV Storage">RV Storage</option>
+                                </select>
+                                <span asp-validation-for="Size" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MonthlyRate" class="form-label">Monthly Rate (R)</label>
+                                <input asp-for="MonthlyRate" class="form-control" type="number" step="10" placeholder="e.g., 450" />
+                                <span asp-validation-for="MonthlyRate" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Location" class="form-label">Location</label>
+                                <select asp-for="Location" class="form-select">
+                                    <option value="">Select Location</option>
+                                    <option value="Durban Central">Durban Central</option>
+                                    <option value="Umhlanga">Umhlanga</option>
+                                    <option value="Pinetown">Pinetown</option>
+                                    <option value="Westville">Westville</option>
+                                </select>
+                                <span asp-validation-for="Location" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ClimateControl" class="form-label">Climate Control</label>
+                                <select asp-for="ClimateControl" class="form-select">
+                                    <option value="None">None - Standard Storage</option>
+                                    <option value="Basic">Basic - Temperature Controlled</option>
+                                    <option value="Premium">Premium - Full Climate Control</option>
+                                </select>
+                                <span asp-validation-for="ClimateControl" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="IsActive" class="form-label">Status</label>
+                                <select asp-for="IsActive" class="form-select">
+                                    <option value="true">Active - Available for Rent</option>
+                                    <option value="false">Inactive - Not Available</option>
+                                </select>
+                                <span asp-validation-for="IsActive" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-gold w-100 py-2">
+                                <i class="bi bi-save"></i> Create Storage Unit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <a href="/Admin/StorageUnits" class="text-decoration-none">
+                        <i class="bi bi-arrow-left"></i> Back to Storage Units
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        color: #2c2c2c;
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

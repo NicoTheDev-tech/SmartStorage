@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Delivery Calendar";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Delivery Calendar</h1>
+            <p class="text-muted">View all scheduled deliveries</p>
+        </div>
+        <div>
+            <a href="/Admin/Delivery" class="btn btn-outline-gold">
+                <i class="bi bi-list"></i> List View
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div id="calendar" style="min-height: 600px;"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: '/Admin/Delivery/GetCalendarEvents',
+                eventClick: function(info) {
+                    window.location.href = '/Admin/Delivery/Details/' + info.event.id;
+                },
+                eventDidMount: function(info) {
+                    var status = info.event.extendedProps.status;
+                    var colors = {
+                        'Pending': '#ffc107',
+                        'Confirmed': '#0dcaf0',
+                        'Completed': '#198754',
+                        'Cancelled': '#dc3545'
+                    };
+                    info.el.style.backgroundColor = colors[status] || '#6c757d';
+                    info.el.style.borderColor = colors[status] || '#6c757d';
+                }
+            });
+            calendar.render();
+        });
+    </script>
+}
+
+<style>
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 8px 20px;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+    }
+</style>

@@ -1,0 +1,57 @@
+﻿@model IEnumerable<SmartStorage.Core.Entities.Booking>
+@{
+    ViewData["Title"] = "Storage Operations";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold">Storage Operations</h1>
+        <p class="text-muted">Active storage units and their status</p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Booking #</th>
+                            <th>Client</th>
+                            <th>Unit</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var booking in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@booking.BookingNumber</td>
+                                    <td>@(booking.Client?.FullName ?? "Unknown")</td>
+                                    <td>@(booking.StorageUnit?.UnitNumber ?? "Unknown")</td>
+                                    <td>@booking.StartDate.ToString("dd MMM yyyy")</td>
+                                    <td>@booking.EndDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-success">@booking.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-building fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No active storage units</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

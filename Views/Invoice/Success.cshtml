@@ -1,0 +1,144 @@
+﻿@{
+    var booking = ViewBag.Booking as SmartStorage.Core.DTOs.BookingResponseDto;
+    ViewData["Title"] = "Payment Successful";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg text-center">
+                <div class="card-header border-0 pt-5" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle-fill text-white" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="text-white mb-0">Payment Successful!</h2>
+                    <p class="text-white-50 mb-3">Your payment has been processed successfully</p>
+                </div>
+                <div class="card-body p-5">
+                    <!-- Confetti Effect -->
+                    <div id="confetti"></div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <small class="text-muted">Booking Number</small>
+                                <h5 class="mb-0 text-gold">@booking?.BookingNumber</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <small class="text-muted">Amount Paid</small>
+                                <h5 class="mb-0 text-gold">R @(booking?.TotalAmount + 75)</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="bi bi-envelope-fill me-2"></i>
+                        A confirmation email has been sent to your registered email address.
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <a href="/Customer/Dashboard" class="btn btn-gold w-100 py-3">
+                                    <i class="bi bi-speedometer2"></i> Go to Dashboard
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/Contracts/Create/@booking?.Id" class="btn btn-outline-gold w-100 py-3">
+                                    <i class="bi bi-file-text"></i> View Contract
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/Customer/MyBookings" class="btn btn-outline-secondary w-100 py-3">
+                                    <i class="bi bi-journal-bookmark-fill"></i> My Bookings
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/Customer/DeliverySchedule" class="btn btn-outline-secondary w-100 py-3">
+                                    <i class="bi bi-truck"></i> Schedule Delivery
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top">
+                        <small class="text-muted">
+                            <i class="bi bi-question-circle"></i> Need help? Contact our support team at <strong>support@smartstorage.co.za</strong>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script>
+        // Trigger confetti on page load
+        canvasConfetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#D4AF37', '#B8860B', '#F5E6B0']
+        });
+        
+        // Multiple bursts
+        setTimeout(() => {
+            canvasConfetti({
+                particleCount: 100,
+                spread: 100,
+                origin: { y: 0.5 },
+                startVelocity: 25,
+                colors: ['#D4AF37', '#F5E6B0']
+            });
+        }, 500);
+        
+        setTimeout(() => {
+            canvasConfetti({
+                particleCount: 200,
+                spread: 120,
+                origin: { y: 0.7 },
+                startVelocity: 20,
+                colors: ['#B8860B', '#D4AF37']
+            });
+        }, 1000);
+    </script>
+    <style>
+        .text-gold {
+            color: var(--gold);
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+            color: #2c2c2c;
+            font-weight: 600;
+            border: none;
+        }
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+            color: #2c2c2c;
+        }
+        .btn-outline-gold {
+            border: 2px solid #D4AF37;
+            color: #D4AF37;
+            background: transparent;
+            font-weight: 600;
+        }
+        .btn-outline-gold:hover {
+            background: #D4AF37;
+            color: #2c2c2c;
+        }
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+}

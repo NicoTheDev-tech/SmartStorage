@@ -1,0 +1,1010 @@
+﻿@model SmartStorage.ViewModels.ReserveWizardViewModel
+@{
+    ViewData["Title"] = "Reserve Storage Unit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+        position: relative;
+        flex-wrap: wrap;
+    }
+    .step {
+        text-align: center;
+        flex: 1;
+        min-width: 70px;
+        position: relative;
+        z-index: 2;
+    }
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        background: #e0e0e0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-weight: bold;
+        color: #2c2c2c;
+        transition: all 0.3s ease;
+    }
+    .step.active .step-circle {
+        background: #D4AF37;
+        color: #2c2c2c;
+        box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.2);
+    }
+    .step.completed .step-circle {
+        background: #B8860B;
+        color: white;
+    }
+    .step-label {
+        font-size: 0.75rem;
+        color: #808080;
+    }
+    .step.active .step-label {
+        color: #D4AF37;
+        font-weight: bold;
+    }
+    .step-line {
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e0e0e0;
+        z-index: 1;
+    }
+    .storage-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .storage-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .storage-card.selected {
+        border-color: #D4AF37;
+        background: linear-gradient(135deg, rgba(212,175,55,0.05) 0%, rgba(212,175,55,0.1) 100%);
+    }
+    .storage-icon {
+        font-size: 2.5rem;
+        color: #D4AF37;
+    }
+    .unit-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+    }
+    .unit-card:hover, .unit-card.selected {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        border-color: #D4AF37;
+    }
+    .price {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #D4AF37;
+    }
+    .summary-card {
+        position: sticky;
+        top: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+    .service-option {
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+    }
+    .service-option:hover {
+        background: rgba(212,175,55,0.1);
+        border-color: #D4AF37;
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        padding: 12px 25px;
+        border-radius: 50px;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        color: #2c2c2c;
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+    }
+    .text-gold {
+        color: #D4AF37;
+    }
+    .bg-gold-light {
+        background: rgba(212, 175, 55, 0.1);
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step-line"></div>
+        <div class="step" id="step1">
+            <div class="step-circle">1</div>
+            <div class="step-label">Storage Type</div>
+        </div>
+        <div class="step" id="step2">
+            <div class="step-circle">2</div>
+            <div class="step-label">Filter</div>
+        </div>
+        <div class="step" id="step3">
+            <div class="step-circle">3</div>
+            <div class="step-label">Select Unit</div>
+        </div>
+        <div class="step" id="step4">
+            <div class="step-circle">4</div>
+            <div class="step-label">Duration</div>
+        </div>
+        <div class="step" id="step5">
+            <div class="step-circle">5</div>
+            <div class="step-label">Goods Details</div>
+        </div>
+        <div class="step" id="step6">
+            <div class="step-circle">6</div>
+            <div class="step-label">Cartage</div>
+        </div>
+        <div class="step" id="step7">
+            <div class="step-circle">7</div>
+            <div class="step-label">Vehicle Services</div>
+        </div>
+        <div class="step" id="step8">
+            <div class="step-circle">8</div>
+            <div class="step-label">Add-Ons</div>
+        </div>
+        <div class="step" id="step9">
+            <div class="step-circle">9</div>
+            <div class="step-label">Review</div>
+        </div>
+        <div class="step" id="step10">
+            <div class="step-circle">10</div>
+            <div class="step-label">Confirm</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Step 1: Storage Type -->
+            <div id="step1Content" class="step-content">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Choose Storage Type</h3>
+                        <div class="row g-4">
+                            @foreach (var type in Model.StorageTypes)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card storage-card h-100" data-type="@type.Value" data-name="@type.Name">
+                                        <div class="card-body text-center">
+                                            <i class="bi @type.Icon storage-icon"></i>
+                                            <h5 class="mt-3">@type.Name</h5>
+                                            <p class="text-muted small">@type.Description</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-end mt-4">
+                            <button class="btn btn-gold" id="step1Next" disabled>Continue <i class="bi bi-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Filters -->
+            <div id="step2Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Filter Your Options</h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Unit Size</label>
+                                <select id="sizeFilter" class="form-select">
+                                    <option value="">Any Size</option>
+                                    <option value="Small">Small - Up to 50 items / 1 room</option>
+                                    <option value="Medium">Medium - 1-bedroom apartment / 100 items</option>
+                                    <option value="Large">Large - 2-3 bedroom house / Furniture</option>
+                                    <option value="ExtraLarge">Extra Large - Full house / Business stock</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Location</label>
+                                <select id="locationFilter" class="form-select">
+                                    <option value="">All Locations</option>
+                                    <option value="Durban">Durban Central</option>
+                                    <option value="Umhlanga">Umhlanga</option>
+                                    <option value="Pinetown">Pinetown</option>
+                                    <option value="Westville">Westville</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Price Range (R/month)</label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <input type="number" id="minPrice" class="form-control" placeholder="Min" value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="number" id="maxPrice" class="form-control" placeholder="Max" value="10000">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Features</label>
+                                <div class="form-check">
+                                    <input type="checkbox" id="climateControl" class="form-check-input">
+                                    <label class="form-check-label">Climate Controlled Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" id="driveUp" class="form-check-input">
+                                    <label class="form-check-label">Drive-up Access</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-outline-gold" id="step2Back">Back</button>
+                            <button class="btn btn-gold" id="applyFiltersBtn">Apply Filters & Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Available Units -->
+            <div id="step3Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Available Units</h3>
+                        <div id="unitsContainer" class="row g-4">
+                            <div class="col-12 text-center py-5">
+                                <div class="spinner-border text-gold"></div>
+                                <p class="mt-2">Loading units...</p>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-outline-gold" id="step3Back">Back</button>
+                            <button class="btn btn-gold" id="step3Next" disabled>Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Duration -->
+            <div id="step4Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Select Duration</h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" id="startDate" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" id="endDate" class="form-control">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Commitment Period (Discounts Applied)</label>
+                                <select id="commitment" class="form-select">
+                                    <option value="Month-to-Month" data-discount="0">Month-to-Month (0% discount)</option>
+                                    <option value="3-Month" data-discount="10">3-Month Commitment (10% discount)</option>
+                                    <option value="6-Month" data-discount="15">6-Month Commitment (15% discount)</option>
+                                    <option value="12-Month" data-discount="20">12-Month Commitment (20% discount)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="availabilityMessage" class="mb-3"></div>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-outline-gold" id="step4Back">Back</button>
+                            <button class="btn btn-gold" id="checkAvailabilityBtn">Check Availability & Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Goods Details -->
+            <div id="step5Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Tell Us About Your Items</h3>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Type of Goods</label>
+                                <select id="goodsType" class="form-select">
+                                    <option value="">Select...</option>
+                                    <option value="Furniture">Furniture</option>
+                                    <option value="Boxes">Boxes / Documents</option>
+                                    <option value="Electronics">Electronics / Appliances</option>
+                                    <option value="Vehicle">Vehicle</option>
+                                    <option value="Business Inventory">Business Inventory</option>
+                                    <option value="Mixed Items">Mixed Items</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Number of Items</label>
+                                <input type="number" id="itemCount" class="form-control" value="1" min="1">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Special Instructions</label>
+                                <textarea id="specialInstructions" class="form-control" rows="2" placeholder="Any fragile items? Need special handling?"></textarea>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-outline-gold" id="step5Back">Back</button>
+                            <button class="btn btn-gold" id="step5Next">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Cartage Option -->
+            <div id="step6Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Pickup & Delivery Services</h3>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" id="needCartage" class="form-check-input">
+                            <label class="form-check-label fw-bold">Yes, I need pickup and delivery services (R500 - R1500)</label>
+                        </div>
+                        <div id="cartageDetails" style="display:none;">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Pickup Address</label>
+                                    <textarea id="pickupAddress" class="form-control" rows="2" placeholder="Enter pickup address">@Model.PickupAddress</textarea>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Delivery Address</label>
+                                    <textarea id="deliveryAddress" class="form-control" rows="2" placeholder="Enter delivery address">@Model.DeliveryAddress</textarea>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Preferred Pickup Date</label>
+                                    <input type="date" id="pickupDate" class="form-control">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Cartage Type</label>
+                                    <select id="cartageType" class="form-select">
+                                        <option value="500">Standard Cartage (R500)</option>
+                                        <option value="800">Priority Cartage (R800)</option>
+                                        <option value="1200">Express Cartage (R1200)</option>
+                                        <option value="1500">Premium Cartage (R1500)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-outline-gold" id="step6Back">Back</button>
+                            <button class="btn btn-gold" id="step6Next">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Vehicle Services -->
+            <div id="step7Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Vehicle Maintenance Services</h3>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" id="needVehicleService" class="form-check-input">
+                            <label class="form-check-label fw-bold">Yes, I need maintenance services</label>
+                        </div>
+                        <div id="vehicleServiceDetails" style="display:none;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label">Service Type</label>
+                                    <select id="serviceType" class="form-select">
+                                        <option value="450">Basic Service - R450</option>
+                                        <option value="850">Full Service - R850</option>
+                                        <option value="0">Repair - Quote Required</option>
+                                        <option value="250">Inspection - R250</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-outline-gold" id="step7Back">Back</button>
+                            <button class="btn btn-gold" id="step7Next">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 8: Add-Ons -->
+            <div id="step8Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Extras & Add-Ons</h3>
+                        <div class="row">
+                            <div class="col-md-12 mb-2">
+                                <div class="service-option d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <i class="bi bi-box"></i> <strong>Moving Supplies</strong>
+                                        <br><small class="text-muted">Boxes, tape, locks, bubble wrap</small>
+                                        <div class="text-gold fw-bold">R32 one-time</div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="movingSupplies" class="form-check-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-2">
+                                <div class="service-option d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <i class="bi bi-truck"></i> <strong>Truck Rental</strong>
+                                        <br><small class="text-muted">1-ton truck with driver</small>
+                                        <div class="text-gold fw-bold">R30/day</div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="truckRental" class="form-check-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-2">
+                                <div class="service-option d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <i class="bi bi-people"></i> <strong>Moving Labor</strong>
+                                        <br><small class="text-muted">2-hour minimum, professional movers</small>
+                                        <div class="text-gold fw-bold">R50/hour (R100 minimum)</div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="movingLabor" class="form-check-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-2">
+                                <div class="service-option d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <i class="bi bi-shield-check"></i> <strong>Monthly Insurance</strong>
+                                        <br><small class="text-muted">Protection for stored items up to R10,000 value</small>
+                                        <div class="text-gold fw-bold">R15/month</div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="insurance" class="form-check-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-2">
+                                <div class="service-option d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <i class="bi bi-credit-card"></i> <strong>Auto-Pay Enrollment</strong>
+                                        <br><small class="text-muted">5% discount on monthly rate</small>
+                                        <div class="text-gold fw-bold">Save 5%</div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="autopay" class="form-check-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-outline-gold" id="step8Back">Back</button>
+                            <button class="btn btn-gold" id="step8Next">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 9: Review -->
+            <div id="step9Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Review Your Reservation</h3>
+                        <div id="reviewContent"></div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-outline-gold" id="step9Back">Back</button>
+                            <button class="btn btn-gold" id="step9Next">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 10: Confirm -->
+            <div id="step10Content" class="step-content" style="display:none;">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">Agree to Terms</h3>
+                        <div class="mb-4 p-3 bg-gold-light rounded" style="max-height: 300px; overflow-y: auto;">
+                            <h6>SmartStorage Terms and Conditions</h6>
+                            <p>By proceeding, you agree to our storage contract terms including:</p>
+                            <ul>
+                                <li>Monthly rental fees are payable in advance on the 1st of each month</li>
+                                <li>Security deposit of R50 is refundable upon contract end with 30-day notice</li>
+                                <li>Prohibited items include hazardous materials, perishables, and illegal goods</li>
+                                <li>Customer is responsible for insuring stored items</li>
+                                <li>24/7 access with valid ID and access code</li>
+                                <li>Late payments incur a 10% penalty fee</li>
+                            </ul>
+                            <div class="form-check mt-3">
+                                <input type="checkbox" id="agreeTerms" class="form-check-input">
+                                <label class="form-check-label">I have read, understood, and agree to the Terms and Conditions</label>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-outline-gold" id="step10Back">Back</button>
+                            <button class="btn btn-gold btn-lg" id="confirmBookingBtn" disabled>Confirm & Create Booking</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="summary-card">
+                <h5 class="mb-3"><i class="bi bi-receipt text-gold"></i> Your Reservation Summary</h5>
+                <div id="summaryContent">
+                    <p class="text-muted text-center py-4">Complete the steps to see your summary</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentStep = 1;
+        let selectedType = null;
+        let selectedTypeName = null;
+        let selectedUnit = null;
+        let selectedUnitPrice = 0;
+        let selectedUnitFeatures = '';
+        let selectedUnitNumber = '';
+        let selectedUnitSize = '';
+        let selectedUnitSizeCategory = '';
+        let discountPercentage = 0;
+        let monthlyRate = 0;
+
+        // Pricing Matrix
+        const pricingMatrix = {
+            self: { Small: 650, Medium: 1100, Large: 1900, ExtraLarge: 3250 },
+            climate: { Small: 1050, Medium: 1650, Large: 2750, ExtraLarge: 4250 },
+            vehicle: { Small: 1000, Medium: 1500, Large: 2300, ExtraLarge: 3400 },
+            business: { Small: 1500, Medium: 3000, Large: 5500, ExtraLarge: 8500 },
+            household: { Small: 1000, Medium: 1600, Large: 2750, ExtraLarge: 4250 }
+        };
+
+        $(document).ready(function() {
+            updateStepDisplay();
+            bindEvents();
+            
+            $('#minPrice').val(0);
+            $('#maxPrice').val(10000);
+            
+            $('#startDate, #endDate, #commitment, #insurance, #movingSupplies, #truckRental, #movingLabor, #autopay, #needCartage, #cartageType, #needVehicleService, #serviceType').on('change', function() {
+                updateSummary();
+                if (currentStep === 8) updateReview();
+            });
+        });
+
+        function bindEvents() {
+            $('.storage-card').click(function() {
+                $('.storage-card').removeClass('selected');
+                $(this).addClass('selected');
+                selectedType = $(this).data('type');
+                selectedTypeName = $(this).data('name');
+                $('#step1Next').prop('disabled', false);
+                
+                if (selectedType === 'vehicle') {
+                    $('#step7').show();
+                    $('#step7Content').show();
+                } else {
+                    $('#step7').hide();
+                    $('#step7Content').hide();
+                }
+            });
+            $('#step1Next').click(() => { moveToStep(2); loadAvailableUnits(); });
+            $('#step2Back').click(() => moveToStep(1));
+            $('#applyFiltersBtn').click(() => { loadAvailableUnits(); moveToStep(3); });
+            $('#step3Back').click(() => moveToStep(2));
+            $('#step3Next').click(() => moveToStep(4));
+            $('#step4Back').click(() => moveToStep(3));
+            $('#checkAvailabilityBtn').click(checkAvailability);
+            $('#step5Back').click(() => moveToStep(4));
+            $('#step5Next').click(() => moveToStep(6));
+            $('#step6Back').click(() => moveToStep(5));
+            $('#needCartage').change(() => $('#cartageDetails').toggle(this.checked));
+            $('#step6Next').click(() => moveToStep(7));
+            $('#step7Back').click(() => moveToStep(6));
+            $('#needVehicleService').change(() => $('#vehicleServiceDetails').toggle(this.checked));
+            $('#step7Next').click(() => moveToStep(8));
+            $('#step8Back').click(() => moveToStep(7));
+            $('#step8Next').click(() => { updateReview(); moveToStep(9); });
+            $('#step9Back').click(() => moveToStep(8));
+            $('#step9Next').click(() => moveToStep(10));
+            $('#step10Back').click(() => moveToStep(9));
+            $('#agreeTerms').change(function() { $('#confirmBookingBtn').prop('disabled', !this.checked); });
+            $('#confirmBookingBtn').click(createBooking);
+        }
+
+        function updateStepDisplay() {
+            for (let i = 1; i <= 10; i++) {
+                if (i < currentStep) {
+                    $(`#step${i}`).addClass('completed').removeClass('active');
+                } else if (i === currentStep) {
+                    $(`#step${i}`).addClass('active').removeClass('completed');
+                    $(`#step${i}Content`).show();
+                } else {
+                    $(`#step${i}`).removeClass('active completed');
+                    $(`#step${i}Content`).hide();
+                }
+            }
+            updateSummary();
+        }
+
+        function moveToStep(step) {
+            currentStep = step;
+            updateStepDisplay();
+        }
+
+                function loadAvailableUnits() {
+            let size = $('#sizeFilter').val();
+            let location = $('#locationFilter').val();
+            let minPrice = $('#minPrice').val() || 0;
+            let maxPrice = $('#maxPrice').val() || 10000;
+            let climateControlled = $('#climateControl').is(':checked');
+
+            $.ajax({
+                url: '/Reserve/GetAvailableUnits',
+                method: 'GET',
+                data: {
+                    storageType: selectedType,
+                    size: size,
+                    location: location,
+                    minPrice: minPrice,
+                    maxPrice: maxPrice,
+                    climateControlled: climateControlled
+                },
+                success: function(units) {
+                    console.log('Units received:', units);
+
+                    if (units.length === 0) {
+                        $('#unitsContainer').html('<div class="col-12 text-center"><p class="text-muted">No units match your criteria. Try adjusting filters.</p></div>');
+                        return;
+                    }
+
+                    let html = '';
+                    units.forEach(unit => {
+                        html += `
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card unit-card h-100" data-unit-id="${unit.id}" data-unit-price="${unit.price}" data-unit-number="${unit.unitNumber}">
+                                    <div class="card-body">
+                                        <h5 class="fw-bold">Unit ${unit.unitNumber}</h5>
+                                        <p><strong>Size:</strong> ${unit.size}<br>
+                                        <strong>Floor:</strong> ${unit.floor}<br>
+                                        <strong>Features:</strong> ${unit.features}<br>
+                                        <strong class="price">R${unit.price.toLocaleString()}/month</strong><br>
+                                        <small class="text-muted">${unit.description}</small></p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $('#unitsContainer').html(html);
+
+                    $('.unit-card').click(function() {
+                        $('.unit-card').removeClass('selected');
+                        $(this).addClass('selected');
+                        selectedUnit = $(this).data('unit-id');
+                        selectedUnitPrice = $(this).data('unit-price');
+                        selectedUnitNumber = $(this).data('unit-number');
+                        $('#step3Next').prop('disabled', false);
+                        updateSummary();
+                    });
+                },
+                error: function(xhr) {
+                    console.error('Error loading units:', xhr.responseText);
+                    $('#unitsContainer').html('<div class="col-12 text-center"><p class="text-danger">Error loading units. Please try again.</p></div>');
+                }
+            });
+        }
+       
+
+        function getAvailableSizes(storageType) {
+            return ['Small', 'Medium', 'Large', 'ExtraLarge'];
+        }
+
+        function getSizeDescription(storageType, sizeCategory) {
+            if (storageType === 'vehicle') {
+                return sizeCategory === 'Small' ? 'Small Car (Sedan, Hatchback)' :
+                       sizeCategory === 'Medium' ? 'SUV / Light Truck' :
+                       sizeCategory === 'Large' ? 'Large Truck / Small Boat' :
+                       'Boat / RV / Caravan';
+            }
+            return sizeCategory === 'Small' ? 'Up to 50 items / 1 room' :
+                   sizeCategory === 'Medium' ? '1-bedroom apartment / 100 items' :
+                   sizeCategory === 'Large' ? '2-3 bedroom house / Furniture' :
+                   'Full house / Business stock';
+        }
+
+        function getFeatureDescription(storageType) {
+            return storageType === 'climate' ? '✓ Temperature controlled | ✓ Humidity regulated | ✓ Premium security' :
+                   storageType === 'vehicle' ? '✓ 24/7 vehicle access | ✓ Security cameras | ✓ Battery charging' :
+                   storageType === 'business' ? '✓ Extended hours | ✓ Loading dock | ✓ Pallet storage' :
+                   '✓ 24/7 access | ✓ Security cameras | ✓ Individual alarm';
+        }
+
+        function getStorageTypeName(type) {
+            return {
+                'self': 'Self Storage',
+                'climate': 'Climate-Controlled Storage',
+                'vehicle': 'Vehicle Storage',
+                'business': 'Business Storage',
+                'household': 'Household Storage'
+            }[type] || 'Storage';
+        }
+
+        function getDiscountPercentage(months) {
+            if (months >= 12) return 20;
+            if (months >= 6) return 15;
+            if (months >= 3) return 10;
+            return 0;
+        }
+
+        function getDurationMonths() {
+            let startDate = $('#startDate').val();
+            let endDate = $('#endDate').val();
+            if (!startDate || !endDate) return 1;
+            let start = new Date(startDate);
+            let end = new Date(endDate);
+            let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+            return months > 0 ? months : 1;
+        }
+
+        function checkAvailability() {
+            let startDate = $('#startDate').val();
+            let endDate = $('#endDate').val();
+            
+            if (!startDate || !endDate) {
+                $('#availabilityMessage').html('<div class="alert alert-danger">Please select both start and end dates</div>');
+                return;
+            }
+            
+            let months = getDurationMonths();
+            discountPercentage = getDiscountPercentage(months);
+            $('#commitment').val(months >= 12 ? '12-Month' : months >= 6 ? '6-Month' : months >= 3 ? '3-Month' : 'Month-to-Month');
+            
+            $('#availabilityMessage').html('<div class="alert alert-success">✓ Unit available for selected dates! ' + months + ' month(s) with ' + discountPercentage + '% discount applied.</div>');
+            updateSummary();
+            moveToStep(5);
+        }
+
+       function updateSummary() {
+    let hasUnit = (selectedUnit !== null && selectedUnitNumber !== '');
+    let hasDates = ($('#startDate').val() && $('#endDate').val());
+    
+    if (!hasUnit) {
+        $('#summaryContent').html(`
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-info-circle fs-2"></i>
+                <p class="mt-2 mb-0">Select a storage unit to begin</p>
+            </div>
+        `);
+        return;
+    }
+    
+    if (!hasDates) {
+        $('#summaryContent').html(`
+            <div class="mb-3 pb-2 border-bottom">
+                <small class="text-muted">Storage Unit</small>
+                <p class="fw-bold mb-0">${selectedUnitNumber}</p>
+                <small>${selectedUnitSize || ''}</small>
+            </div>
+            <div class="text-center py-3 text-muted">
+                <i class="bi bi-calendar fs-2"></i>
+                <p class="mt-2 mb-0">Select dates to see pricing</p>
+            </div>
+        `);
+        return;
+    }
+    
+    let months = getDurationMonths();
+    let discountedRate = selectedUnitPrice * (1 - discountPercentage / 100);
+    let subtotal = discountedRate * months;
+    let totalDue = subtotal + 25 + 50;
+    
+    // Get add-ons for summary
+    let movingSuppliesCost = $('#movingSupplies').is(':checked') ? 32 : 0;
+    let truckRentalCost = $('#truckRental').is(':checked') ? 30 : 0;
+    let movingLaborCost = $('#movingLabor').is(':checked') ? 100 : 0;
+    let cartageCost = $('#needCartage').is(':checked') ? parseInt($('#cartageType').val()) : 0;
+    let vehicleServiceCost = $('#needVehicleService').is(':checked') ? parseInt($('#serviceType').val()) : 0;
+    
+    let addOnsTotal = movingSuppliesCost + truckRentalCost + movingLaborCost + cartageCost + vehicleServiceCost;
+    let grandTotal = totalDue + addOnsTotal;
+    
+    let addOnsHtml = '';
+    if (movingSuppliesCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Moving Supplies:</span><span>+R${movingSuppliesCost}</span></div>`;
+    if (truckRentalCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Truck Rental:</span><span>+R${truckRentalCost}</span></div>`;
+    if (movingLaborCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Moving Labor:</span><span>+R${movingLaborCost}</span></div>`;
+    if (cartageCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Cartage Service:</span><span>+R${cartageCost}</span></div>`;
+    if (vehicleServiceCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Vehicle Service:</span><span>+R${vehicleServiceCost}</span></div>`;
+    
+    let html = `
+        <div class="mb-3 pb-2 border-bottom">
+            <small class="text-muted">Storage Unit</small>
+            <p class="fw-bold mb-0">${selectedUnitNumber}</p>
+            <small>${selectedUnitSize || ''}</small>
+        </div>
+        <div class="mb-3 pb-2 border-bottom">
+            <small class="text-muted">Duration</small>
+            <p class="mb-0">${$('#startDate').val()} - ${$('#endDate').val()}</p>
+            <small>${months} month(s)</small>
+            ${discountPercentage > 0 ? `<small class="text-success d-block">✓ ${discountPercentage}% discount applied</small>` : ''}
+        </div>
+        <div class="mb-3 pb-2 border-bottom">
+            <small class="text-muted">Monthly Breakdown</small>
+            <div class="d-flex justify-content-between">
+                <span>Base Rate:</span>
+                <span>R${selectedUnitPrice.toLocaleString()}</span>
+            </div>
+            ${discountPercentage > 0 ? `<div class="d-flex justify-content-between text-success">
+                <span>Discount (${discountPercentage}%):</span>
+                <span>-R${Math.round(selectedUnitPrice * discountPercentage / 100).toLocaleString()}</span>
+            </div>` : ''}
+            <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
+                <span>Total Monthly:</span>
+                <span>R${Math.round(discountedRate).toLocaleString()}</span>
+            </div>
+        </div>
+        <div class="mb-3 pb-2 border-bottom">
+            <small class="text-muted">One-Time Fees</small>
+            <div class="d-flex justify-content-between">
+                <span>Admin Fee:</span>
+                <span>R25</span>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span>Security Deposit:</span>
+                <span>R50</span>
+            </div>
+            ${addOnsHtml}
+        </div>
+        <div class="pt-2">
+            <div class="d-flex justify-content-between">
+                <span class="fw-bold">Subtotal (${months} months):</span>
+                <span class="fw-bold">R${Math.round(subtotal).toLocaleString()}</span>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+                <span class="fw-bold fs-5 text-gold">Total Due Today:</span>
+                <span class="fw-bold fs-5 text-gold">R${Math.round(grandTotal).toLocaleString()}</span>
+            </div>
+            <small class="text-muted d-block mt-2">Includes first month + admin fee + deposit + add-ons</small>
+        </div>
+    `;
+    $('#summaryContent').html(html);
+}
+
+        function updateReview() {
+    let months = getDurationMonths();
+    let discountedRate = selectedUnitPrice * (1 - discountPercentage / 100);
+    
+    let insuranceCost = $('#insurance').is(':checked') ? 15 : 0;
+    let movingSuppliesCost = $('#movingSupplies').is(':checked') ? 32 : 0;
+    let truckRentalCost = $('#truckRental').is(':checked') ? 30 : 0;
+    let movingLaborCost = $('#movingLabor').is(':checked') ? 100 : 0;
+    let cartageCost = $('#needCartage').is(':checked') ? parseInt($('#cartageType').val()) : 0;
+    let vehicleServiceCost = $('#needVehicleService').is(':checked') ? parseInt($('#serviceType').val()) : 0;
+    
+    let autopayDiscount = $('#autopay').is(':checked') ? 0.05 : 0;
+    let finalMonthlyRate = discountedRate * (1 - autopayDiscount);
+    let totalMonthly = finalMonthlyRate + insuranceCost;
+    let subtotal = totalMonthly * months;
+    let totalDue = subtotal + 25 + 50 + movingSuppliesCost + truckRentalCost + movingLaborCost + cartageCost + vehicleServiceCost;
+    
+    let startDate = $('#startDate').val();
+    let endDate = $('#endDate').val();
+    
+    // Build services and add-ons list
+    let servicesHtml = '';
+    if ($('#needCartage').is(':checked')) servicesHtml += `<div>✓ Cartage Service: R${cartageCost}</div>`;
+    if ($('#needVehicleService').is(':checked')) servicesHtml += `<div>✓ Vehicle Service: R${vehicleServiceCost}</div>`;
+    if ($('#movingSupplies').is(':checked')) servicesHtml += `<div>✓ Moving Supplies: R${movingSuppliesCost}</div>`;
+    if ($('#truckRental').is(':checked')) servicesHtml += `<div>✓ Truck Rental: R${truckRentalCost}</div>`;
+    if ($('#movingLabor').is(':checked')) servicesHtml += `<div>✓ Moving Labor: R${movingLaborCost}</div>`;
+    
+    if (servicesHtml === '') servicesHtml = '<div>✗ No additional services selected</div>';
+    
+    let html = `
+        <div class="border rounded p-3 mb-3 bg-light">
+            <h6>📦 Storage Details</h6>
+            <p><strong>Type:</strong> ${getStorageTypeName(selectedType)}<br>
+            <strong>Unit:</strong> ${selectedUnitNumber}<br>
+            <strong>Size:</strong> ${selectedUnitSize || 'Medium'}<br>
+            <strong>Size Description:</strong> ${getSizeDescription(selectedType, selectedUnitSizeCategory || 'Medium')}<br>
+            <strong>Features:</strong> ${getFeatureDescription(selectedType)}</p>
+        </div>
+        <div class="border rounded p-3 mb-3 bg-light">
+            <h6>📅 Duration & Pricing</h6>
+            <p><strong>Start:</strong> ${startDate}<br>
+            <strong>End:</strong> ${endDate}<br>
+            <strong>Duration:</strong> ${months} month(s)<br>
+            <strong>Base Monthly:</strong> R${selectedUnitPrice.toLocaleString()}<br>
+            ${discountPercentage > 0 ? `<strong class="text-success">Long-term Discount:</strong> ${discountPercentage}% (-R${Math.round(selectedUnitPrice * discountPercentage / 100).toLocaleString()})<br>` : ''}
+            ${$('#autopay').is(':checked') ? `<strong class="text-success">Autopay Discount:</strong> 5%<br>` : ''}
+            <strong class="text-gold">Final Monthly:</strong> R${Math.round(finalMonthlyRate).toLocaleString()}<br>
+            <strong>Insurance:</strong> ${insuranceCost > 0 ? `R${insuranceCost}/month` : 'Not selected'}<br>
+            <hr>
+            <strong>Total for ${months} months:</strong> R${Math.round(subtotal).toLocaleString()}</p>
+        </div>
+        <div class="border rounded p-3 mb-3 bg-light">
+            <h6>🚚 Services & Add-Ons</h6>
+            ${servicesHtml}
+        </div>
+        <div class="border rounded p-3 mb-3 bg-light">
+            <h6>📦 Goods Details</h6>
+            <p><strong>Type:</strong> ${$('#goodsType option:selected').text() || 'Not specified'}<br>
+            <strong>Items:</strong> ${$('#itemCount').val()}<br>
+            <strong>Instructions:</strong> ${$('#specialInstructions').val() || 'None'}</p>
+        </div>
+        <div class="border rounded p-3 bg-gold-light">
+            <div class="d-flex justify-content-between">
+                <span class="fw-bold">Subtotal (${months} months):</span>
+                <span class="fw-bold">R${Math.round(subtotal).toLocaleString()}</span>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+                <span class="fw-bold fs-4">Total Due Today:</span>
+                <span class="fw-bold text-gold fs-4">R${Math.round(totalDue).toLocaleString()}</span>
+            </div>
+            <small class="text-muted d-block mt-2">Includes admin fee (R25) + security deposit (R50) + all add-ons</small>
+        </div>
+    `;
+    $('#reviewContent').html(html);
+}
+
+        function createBooking() {
+            let bookingData = {
+                storageUnitId: selectedUnit,
+                startDate: $('#startDate').val(),
+                endDate: $('#endDate').val(),
+                clientInfo: {
+                    fullName: '@User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value',
+                    email: '@User.Identity?.Name',
+                    phone: '',
+                    idNumber: '',
+                    address: $('#pickupAddress').val() || ''
+                }
+            };
+            
+            $.ajax({
+                url: '/Reserve/Create',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(bookingData),
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = '/Reserve/Success/' + response.booking.id;
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error creating booking');
+                }
+            });
+        }
+    </script>
+} 	
