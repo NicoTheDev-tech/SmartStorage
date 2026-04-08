@@ -10,8 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Database Context
+var connectionString = Environment.GetEnvironmentVariable("AZURE_DB_CONNECTION");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AzureConnection")));
+    options.UseSqlServer(connectionString));
 
 // Add Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
