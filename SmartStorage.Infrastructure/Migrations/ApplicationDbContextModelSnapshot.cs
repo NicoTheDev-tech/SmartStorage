@@ -241,6 +241,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("CurrentBid")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Description")
@@ -250,6 +251,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("StartingPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Status")
@@ -271,6 +273,7 @@ namespace SmartStorage.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("AssetId")
@@ -324,6 +327,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -350,6 +354,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("DeliveryAddress")
@@ -365,6 +370,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("GoodsWeight")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ItemCount")
@@ -405,7 +411,7 @@ namespace SmartStorage.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -413,11 +419,11 @@ namespace SmartStorage.Infrastructure.Migrations
 
                     b.Property<string>("IdNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PreferredName")
                         .IsRequired()
@@ -431,6 +437,15 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("IdNumber")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
 
                     b.ToTable("Clients");
                 });
@@ -472,9 +487,11 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("MonthlyRate")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("SecurityDeposit")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("SpecialConditions")
@@ -492,6 +509,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalContractValue")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -546,6 +564,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("EstimatedWeight")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("GoodsDescription")
@@ -641,12 +660,15 @@ namespace SmartStorage.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("AmountPaid")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Balance")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("BillingMonth")
@@ -661,7 +683,7 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ContractId")
+                    b.Property<int?>("ContractId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -703,9 +725,9 @@ namespace SmartStorage.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId");
+                    b.HasIndex("BookingId");
 
-                    b.HasIndex("ContractId");
+                    b.HasIndex("ClientId");
 
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
@@ -725,6 +747,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Description")
@@ -761,6 +784,7 @@ namespace SmartStorage.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("BookingId")
@@ -814,6 +838,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("MonthlyRate")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Size")
@@ -872,6 +897,7 @@ namespace SmartStorage.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Capacity")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("LastMaintenanceDate")
@@ -975,7 +1001,7 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.HasOne("SmartStorage.Core.Entities.Client", "Buyer")
                         .WithMany()
                         .HasForeignKey("BuyerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Asset");
@@ -1007,7 +1033,7 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.HasOne("SmartStorage.Core.Entities.Booking", "Booking")
                         .WithMany("Cartages")
                         .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SmartStorage.Core.Entities.Driver", "Driver")
@@ -1077,21 +1103,21 @@ namespace SmartStorage.Infrastructure.Migrations
 
             modelBuilder.Entity("SmartStorage.Core.Entities.Invoice", b =>
                 {
+                    b.HasOne("SmartStorage.Core.Entities.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SmartStorage.Core.Entities.Client", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SmartStorage.Core.Entities.Contract", "Contract")
-                        .WithMany()
-                        .HasForeignKey("ContractId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("Booking");
 
                     b.Navigation("Client");
-
-                    b.Navigation("Contract");
                 });
 
             modelBuilder.Entity("SmartStorage.Core.Entities.MaintenanceRecord", b =>
@@ -1110,7 +1136,7 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.HasOne("SmartStorage.Core.Entities.Booking", "Booking")
                         .WithMany("Payments")
                         .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SmartStorage.Core.Entities.Client", null)

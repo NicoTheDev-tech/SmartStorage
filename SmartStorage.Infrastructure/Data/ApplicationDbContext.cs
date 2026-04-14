@@ -30,6 +30,17 @@ namespace SmartStorage.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // === FIX ALL DECIMAL PRECISION WARNINGS ===
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
+                .SelectMany(t => t.GetProperties())
+                .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
+            {
+                property.SetPrecision(18);
+                property.SetScale(2);
+            }
+
+            // === RELATIONSHIP CONFIGURATIONS ===
+
             // Booking configuration
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Client)
@@ -47,13 +58,15 @@ namespace SmartStorage.Infrastructure.Data
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Booking)
                 .WithMany(b => b.Payments)
-                .HasForeignKey(p => p.BookingId);
+                .HasForeignKey(p => p.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Cartage configuration
             modelBuilder.Entity<Cartage>()
                 .HasOne(c => c.Booking)
                 .WithMany(b => b.Cartages)
-                .HasForeignKey(c => c.BookingId);
+                .HasForeignKey(c => c.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Cartage>()
                 .HasOne(c => c.Driver)
@@ -81,6 +94,19 @@ namespace SmartStorage.Infrastructure.Data
                 .HasForeignKey(c => c.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Invoice configuration (matches your Invoice.cs)
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Booking)
+                .WithMany()
+                .HasForeignKey(i => i.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Client)
+                .WithMany()
+                .HasForeignKey(i => i.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // DeliverySchedule configuration
             modelBuilder.Entity<DeliverySchedule>()
                 .HasOne(d => d.Booking)
@@ -100,7 +126,20 @@ namespace SmartStorage.Infrastructure.Data
                 .HasForeignKey(d => d.AssignedDriverId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Unique constraints
+            // Asset/Bid configuration (using Buyer instead of Client)
+            modelBuilder.Entity<Asset>()
+                .HasMany(a => a.Bids)
+                .WithOne(b => b.Asset)
+                .HasForeignKey(b => b.AssetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Bid>()
+                .HasOne(b => b.Buyer)
+                .WithMany()
+                .HasForeignKey(b => b.BuyerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // === UNIQUE CONSTRAINTS ===
             modelBuilder.Entity<StorageUnit>()
                 .HasIndex(s => s.UnitNumber)
                 .IsUnique();
@@ -125,12 +164,53 @@ namespace SmartStorage.Infrastructure.Data
                 .HasIndex(d => d.ScheduleNumber)
                 .IsUnique();
 
-            // Seed initial data
+            // Client unique constraints (using actual property names)
+            modelBuilder.Entity<Client>()
+                .HasIndex(c => c.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Client>()
+                .HasIndex(c => c.Phone)
+                .IsUnique();
+
+            modelBuilder.Entity<Client>()
+                .HasIndex(c => c.IdNumber)
+                .IsUnique();
+
+            // === SEED INITIAL DATA ===
             modelBuilder.Entity<StorageUnit>().HasData(
-                new StorageUnit { Id = 1, UnitNumber = "A101", Size = "10x10", MonthlyRate = 100, IsActive = true, Location = "Building A", ClimateControl = "None" },
-                new StorageUnit { Id = 2, UnitNumber = "A102", Size = "10x20", MonthlyRate = 180, IsActive = true, Location = "Building A", ClimateControl = "Basic" },
-                new StorageUnit { Id = 3, UnitNumber = "B201", Size = "20x20", MonthlyRate = 350, IsActive = true, Location = "Building B", ClimateControl = "Premium" }
+                new StorageUnit { Id = 1, UnitNumber = "A101", Size = "10x10", MonthlyRate = 100m, IsActive = true, Location = "Building A", ClimateControl = "None" },
+                new StorageUnit { Id = 2, UnitNumber = "A102", Size = "10x20", MonthlyRate = 180m, IsActive = true, Location = "Building A", ClimateControl = "Basic" },
+                new StorageUnit { Id = 3, UnitNumber = "B201", Size = "20x20", MonthlyRate = 350m, IsActive = true, Location = "Building B", ClimateControl = "Premium" }
             );
+        }
+
+        public override int SaveChanges()
+        {
+            RoundDecimalValues();
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            RoundDecimalValues();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void RoundDecimalValues()
+        {
+            var entries = ChangeTracker.Entries()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+                .SelectMany(e => e.Properties)
+                .Where(p => p.CurrentValue is decimal && p.Metadata.ClrType == typeof(decimal));
+
+            foreach (var property in entries)
+            {
+                if (property.CurrentValue is decimal decimalValue)
+                {
+                    property.CurrentValue = Math.Round(decimalValue, 2);
+                }
+            }
         }
     }
 }

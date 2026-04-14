@@ -15,11 +15,13 @@ namespace SmartStorage.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ContractService> _logger;
+        private readonly IEmailService _emailService;
 
-        public ContractService(ApplicationDbContext context, ILogger<ContractService> logger)
+        public ContractService(ApplicationDbContext context, ILogger<ContractService> logger, IEmailService emailService)
         {
             _context = context;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public async Task<ContractResponseDto> CreateContract(CreateContractDto createDto, string adminId)
@@ -47,14 +49,15 @@ namespace SmartStorage.Infrastructure.Services
             if (existingContract != null)
                 throw new InvalidOperationException("A contract already exists for this booking");
 
-            var securityDeposit = createDto.MonthlyRate;
-
+            const decimal ADMIN_FEE = 25m;
+            const decimal SECURITY_FEE = 50m;
             var startDate = createDto.StartDate;
             var endDate = createDto.EndDate;
             var durationMonths = (endDate.Year - startDate.Year) * 12 + (endDate.Month - startDate.Month);
             if (durationMonths <= 0) durationMonths = 1;
 
-            var totalValue = (createDto.MonthlyRate * durationMonths) + securityDeposit;
+            var baseTotal = createDto.MonthlyRate * durationMonths;
+            var totalValue = baseTotal + ADMIN_FEE + SECURITY_FEE;
 
             var contract = new Contract
             {
@@ -64,7 +67,7 @@ namespace SmartStorage.Infrastructure.Services
                 StartDate = createDto.StartDate,
                 EndDate = createDto.EndDate,
                 MonthlyRate = createDto.MonthlyRate,
-                SecurityDeposit = securityDeposit,
+                SecurityDeposit = SECURITY_FEE,
                 TotalContractValue = totalValue,
                 TermsAndConditions = GetStandardTerms(),
                 SpecialConditions = createDto.SpecialConditions ?? string.Empty,
@@ -133,6 +136,23 @@ namespace SmartStorage.Infrastructure.Services
 
             await _context.SaveChangesAsync();
 
+            // Send email notification
+            try
+            {
+                var client = contract.Booking?.Client;
+                if (client != null && !string.IsNullOrEmpty(client.Email))
+                {
+                    await _emailService.SendContractEmailAsync(contract, client.Email, client.FullName);
+                    _logger.LogInformation("Contract acceptance email sent to {Email} for contract {ContractNumber}",
+                        client.Email, contract.ContractNumber);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send contract acceptance email for contract {ContractNumber}",
+                    contract.ContractNumber);
+            }
+
             var result = await GetContractById(contract.Id);
             return result ?? throw new InvalidOperationException("Failed to retrieve accepted contract");
         }
@@ -143,6 +163,8 @@ namespace SmartStorage.Infrastructure.Services
                 throw new ArgumentException("Admin ID is required", nameof(adminId));
 
             var contract = await _context.Contracts
+                .Include(c => c.Booking)
+                .ThenInclude(b => b != null ? b.Client : null)
                 .FirstOrDefaultAsync(c => c.Id == contractId);
 
             if (contract == null)
@@ -161,6 +183,23 @@ namespace SmartStorage.Infrastructure.Services
             }
 
             await _context.SaveChangesAsync();
+
+            // Send activation email notification
+            try
+            {
+                var client = contract.Booking?.Client;
+                if (client != null && !string.IsNullOrEmpty(client.Email))
+                {
+                    await _emailService.SendContractEmailAsync(contract, client.Email, client.FullName);
+                    _logger.LogInformation("Contract activation email sent to {Email} for contract {ContractNumber}",
+                        client.Email, contract.ContractNumber);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send contract activation email for contract {ContractNumber}",
+                    contract.ContractNumber);
+            }
 
             var result = await GetContractById(contractId);
             return result ?? throw new InvalidOperationException("Failed to retrieve activated contract");

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SmartStorage.Core.Entities;
 using SmartStorage.Core.Interfaces;
 using SmartStorage.Core.DTOs;
+using SmartStorage.Core.Constants;
 using SmartStorage.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -45,35 +46,41 @@ namespace SmartStorage.Infrastructure.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Check availability - DISABLED FOR PRESENTATION
                 var isAvailable = await CheckAvailability(bookingDto.StorageUnitId,
                     bookingDto.StartDate, bookingDto.EndDate);
 
                 if (!isAvailable)
                     throw new InvalidOperationException("Storage unit not available for selected dates");
 
-                // Get or create client with userId
                 var client = await GetOrCreateClient(bookingDto.ClientInfo, userId);
-
-                // Get storage unit
                 var storageUnit = await _context.StorageUnits.FindAsync(bookingDto.StorageUnitId);
 
                 if (storageUnit == null)
                     throw new KeyNotFoundException("Storage unit not found");
 
-                // Calculate total amount - FIXED months calculation
                 var startDate = bookingDto.StartDate;
                 var endDate = bookingDto.EndDate;
 
-                // Calculate exact months
+                // Calculate months
                 int months = ((endDate.Year - startDate.Year) * 12) + (endDate.Month - startDate.Month);
                 if (months <= 0) months = 1;
 
-                var totalAmount = (decimal)months * storageUnit.MonthlyRate;
+                // Calculate discount based on months
+                decimal discountPercent = 0;
+                if (months >= 12)
+                    discountPercent = 15;  // 15% for 12+ months
+                else if (months >= 6)
+                    discountPercent = 12;  // 12% for 6+ months
+                else if (months >= 3)
+                    discountPercent = 10;  // 10% for 3+ months
 
-                _logger.LogInformation($"Booking: Unit={storageUnit.UnitNumber}, MonthlyRate={storageUnit.MonthlyRate}, Months={months}, TotalAmount={totalAmount}");
+                // Apply discount to monthly rate
+                decimal originalRate = storageUnit.MonthlyRate;
+                decimal discountedRate = originalRate * (1 - discountPercent / 100);
+                decimal amountDueToday = discountedRate;  // First month at discounted rate
 
-                // Create booking
+                _logger.LogInformation($"Booking: Unit={storageUnit.UnitNumber}, OriginalRate={originalRate}, Months={months}, Discount={discountPercent}%, DiscountedRate={discountedRate}, AmountDueToday={amountDueToday}");
+
                 var booking = new Booking
                 {
                     BookingNumber = GenerateBookingNumber(),
@@ -81,7 +88,7 @@ namespace SmartStorage.Infrastructure.Services
                     StorageUnitId = bookingDto.StorageUnitId,
                     StartDate = bookingDto.StartDate,
                     EndDate = bookingDto.EndDate,
-                    TotalAmount = totalAmount,
+                    TotalAmount = amountDueToday,  // First month at discounted rate
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -89,24 +96,26 @@ namespace SmartStorage.Infrastructure.Services
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
 
-                // Create invoice for the booking
+                // Calculate total due today: discounted rate + fees
+                decimal totalDueToday = amountDueToday + Constants.ADMIN_FEE + Constants.SECURITY_FEE;
+
                 var invoice = new Invoice
                 {
                     InvoiceNumber = GenerateInvoiceNumber(),
                     BookingId = booking.Id,
                     ClientId = client.Id,
                     InvoiceDate = DateTime.UtcNow,
-                    DueDate = DateTime.UtcNow.AddDays(14),
-                    Amount = totalAmount + 75,
+                    DueDate = DateTime.UtcNow.AddDays(Constants.DEFAULT_INVOICE_DUE_DAYS),
+                    Amount = totalDueToday,
                     AmountPaid = 0,
-                    Balance = totalAmount + 75,
+                    Balance = totalDueToday,
                     PeriodStart = booking.StartDate,
-                    PeriodEnd = booking.EndDate,
+                    PeriodEnd = booking.StartDate.AddMonths(1),
                     BillingMonth = booking.StartDate.Month,
                     BillingYear = booking.StartDate.Year,
                     Status = InvoiceStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
-                    Notes = $"Booking #{booking.BookingNumber}"
+                    Notes = $"Booking #{booking.BookingNumber} | First month (R{amountDueToday:N2} after {discountPercent}% discount) + Fees: R{Constants.ADMIN_FEE + Constants.SECURITY_FEE}"
                 };
 
                 _context.Invoices.Add(invoice);
@@ -127,8 +136,6 @@ namespace SmartStorage.Infrastructure.Services
 
         public async Task<bool> CheckAvailability(int storageUnitId, DateTime startDate, DateTime endDate)
         {
-            // TEMPORARY FIX FOR PRESENTATION - ALWAYS RETURN TRUE
-            // This allows any booking regardless of date conflicts
             return await Task.FromResult(true);
         }
 
@@ -140,21 +147,15 @@ namespace SmartStorage.Infrastructure.Services
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentException("User ID is required", nameof(userId));
 
-            // First try to find client by UserId
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (client == null)
             {
-                // If not found by UserId, try by email or ID number
-                client = await _context.Clients
-                    .FirstOrDefaultAsync(c => c.Email == clientInfo.Email ||
-                                              c.IdNumber == clientInfo.IdNumber);
+                client = await _context.Clients.FirstOrDefaultAsync(c => c.Email == clientInfo.Email || c.IdNumber == clientInfo.IdNumber);
             }
 
             if (client == null)
             {
-                // Create new client
                 client = new Client
                 {
                     UserId = userId,
@@ -170,14 +171,12 @@ namespace SmartStorage.Infrastructure.Services
             }
             else if (client.UserId != userId)
             {
-                // Update existing client with UserId
                 client.UserId = userId;
                 client.FullName = clientInfo.FullName ?? client.FullName;
                 client.Email = clientInfo.Email ?? client.Email;
                 client.Phone = clientInfo.Phone ?? client.Phone;
                 client.Address = clientInfo.Address ?? client.Address;
                 client.IdNumber = clientInfo.IdNumber ?? client.IdNumber;
-
                 await _context.SaveChangesAsync();
             }
 
@@ -205,9 +204,7 @@ namespace SmartStorage.Infrastructure.Services
             if (booking == null)
                 return null;
 
-            var amountPaid = booking.Payments?
-                .Where(p => p.Status == PaymentStatus.Completed)
-                .Sum(p => p.Amount) ?? 0;
+            var amountPaid = booking.Payments?.Where(p => p.Status == PaymentStatus.Completed).Sum(p => p.Amount) ?? 0;
 
             return new BookingResponseDto
             {
@@ -244,12 +241,8 @@ namespace SmartStorage.Infrastructure.Services
                 EndDate = b.EndDate,
                 TotalAmount = b.TotalAmount,
                 Status = b.Status.ToString(),
-                AmountPaid = b.Payments?
-                    .Where(p => p.Status == PaymentStatus.Completed)
-                    .Sum(p => p.Amount) ?? 0,
-                Balance = b.TotalAmount - (b.Payments?
-                    .Where(p => p.Status == PaymentStatus.Completed)
-                    .Sum(p => p.Amount) ?? 0)
+                AmountPaid = b.Payments?.Where(p => p.Status == PaymentStatus.Completed).Sum(p => p.Amount) ?? 0,
+                Balance = b.TotalAmount - (b.Payments?.Where(p => p.Status == PaymentStatus.Completed).Sum(p => p.Amount) ?? 0)
             });
         }
 
@@ -258,9 +251,7 @@ namespace SmartStorage.Infrastructure.Services
             if (string.IsNullOrEmpty(userId))
                 return Enumerable.Empty<BookingResponseDto>();
 
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(c => c.UserId == userId);
-
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
             if (client == null)
                 return Enumerable.Empty<BookingResponseDto>();
 
@@ -285,41 +276,30 @@ namespace SmartStorage.Infrastructure.Services
 
         public async Task<BookingResponseDto> CancelBooking(int bookingId, string userId)
         {
-            var booking = await _context.Bookings
-                .Include(b => b.Client)
-                .FirstOrDefaultAsync(b => b.Id == bookingId);
-
+            var booking = await _context.Bookings.Include(b => b.Client).FirstOrDefaultAsync(b => b.Id == bookingId);
             if (booking == null)
                 throw new KeyNotFoundException("Booking not found");
 
-            // Verify ownership - check if the client matches the userId
             var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
             if (booking.ClientId != client?.Id)
                 throw new UnauthorizedAccessException("You can only cancel your own bookings");
 
-            // Can only cancel pending or confirmed bookings that are NOT paid
             if (booking.Status != BookingStatus.Pending && booking.Status != BookingStatus.Confirmed)
                 throw new InvalidOperationException($"Cannot cancel booking with status {booking.Status}");
 
-            // Check if payment has been made
             var hasPayment = await _context.Payments.AnyAsync(p => p.BookingId == bookingId && p.Status == PaymentStatus.Completed);
             if (hasPayment)
                 throw new InvalidOperationException("Cannot cancel a paid booking. Please contact support for refund requests.");
 
             booking.Status = BookingStatus.Cancelled;
 
-            // Also cancel related invoice if exists and not paid
             var invoice = await _context.Invoices.FirstOrDefaultAsync(i => i.BookingId == bookingId);
             if (invoice != null && invoice.Status != InvoiceStatus.Paid)
             {
                 invoice.Status = InvoiceStatus.Cancelled;
             }
 
-            // Cancel any pending delivery schedules
-            var schedules = await _context.DeliverySchedules
-                .Where(d => d.BookingId == bookingId && d.Status != ScheduleStatus.Completed)
-                .ToListAsync();
-
+            var schedules = await _context.DeliverySchedules.Where(d => d.BookingId == bookingId && d.Status != ScheduleStatus.Completed).ToListAsync();
             foreach (var schedule in schedules)
             {
                 schedule.Status = ScheduleStatus.Cancelled;
@@ -328,10 +308,7 @@ namespace SmartStorage.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             var cancelledBooking = await GetBookingById(bookingId);
-            if (cancelledBooking == null)
-                throw new InvalidOperationException("Failed to retrieve cancelled booking");
-
-            return cancelledBooking;
+            return cancelledBooking ?? throw new InvalidOperationException("Failed to retrieve cancelled booking");
         }
     }
 }
