@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<SmartStorage.Core.DTOs.ContractResponseDto>
 @{
     ViewData["Title"] = "My Storage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-5">
@@ -10,7 +11,7 @@
         <p class="text-muted mt-3">View and manage your active storage units</p>
     </div>
 
-    @if (Model.Any())
+    @if (Model != null && Model.Any())
     {
         <div class="row g-4">
             @foreach (var contract in Model)
@@ -18,16 +19,16 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm">
                         <div class="card-header bg-white border-0 pt-4">
-                            <h5 class="fw-bold mb-0">Unit @contract.UnitNumber</h5>
-                            <p class="text-muted small">Contract: @contract.ContractNumber</p>
+                            <h5 class="fw-bold mb-0">Contract: @contract.ContractNumber</h5>
                         </div>
                         <div class="card-body">
-                            <p><strong>Size:</strong> @contract.UnitSize</p>
+                            <p><strong>Start Date:</strong> @contract.StartDate.ToString("dd MMM yyyy")</p>
+                            <p><strong>End Date:</strong> @contract.EndDate.ToString("dd MMM yyyy")</p>
                             <p><strong>Monthly Rate:</strong> R @contract.MonthlyRate.ToString("N0")</p>
-                            <p><strong>Contract Period:</strong> @contract.StartDate.ToString("dd MMM yyyy") - @contract.EndDate.ToString("dd MMM yyyy")</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">@contract.Status</span></p>
                         </div>
                         <div class="card-footer bg-white border-0 pb-4">
-                            <span class="badge bg-success">Active</span>
+                            <a href="/Customer/MyContracts" class="btn btn-outline-gold">View Details</a>
                         </div>
                     </div>
                 </div>

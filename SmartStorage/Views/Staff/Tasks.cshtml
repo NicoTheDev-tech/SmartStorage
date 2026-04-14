@@ -1,71 +1,146 @@
-﻿@model IEnumerable<SmartStorage.Core.Entities.DeliverySchedule>
+﻿@model IEnumerable<SmartStorage.Core.DTOs.DeliveryScheduleResponseDto>
 @{
     ViewData["Title"] = "My Tasks";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
-    <div class="mb-4">
-        <h1 class="display-5 fw-bold">My Tasks</h1>
-        <p class="text-muted">Your assigned deliveries and tasks</p>
-    </div>
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>Schedule #</th>
-                            <th>Client</th>
-                            <th>Type</th>
-                            <th>Address</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            @foreach (var task in Model)
-                            {
-                                <tr>
-                                    <td class="fw-semibold">@task.ScheduleNumber</td>
-                                    <td>@(task.Booking?.Client?.FullName ?? "Unknown")</td>
-                                    <td>@task.DeliveryType</td>
-                                    <td>@(task.DeliveryType.ToString() == "Pickup" ? task.PickupAddress : task.DeliveryAddress)</td>
-                                    <td>@task.ScheduledDate.ToString("dd MMM yyyy")</td>
-                                    <td>
-                                        <span class="badge bg-@(task.Status.ToString() == "Confirmed" ? "info" : "warning")">@task.Status</span>
-                                    </td>
-                                    <td>
-                                        @if (task.Status.ToString() == "Confirmed")
-                                        {
-                                            <form asp-action="CompleteDelivery" asp-route-id="@task.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-success">Mark Complete</button>
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">In Progress</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="7" class="text-center py-5">
-                                    <i class="bi bi-check-circle fs-1 text-muted"></i>
-                                    <p class="text-muted mt-2">No tasks assigned</p>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">My Tasks</h1>
+            <p class="text-muted">Your assigned deliveries and tasks</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-gold p-2">
+                <i class="bi bi-list-check"></i> @Model.Count() Active Tasks
+            </span>
         </div>
     </div>
+
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var task in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 task-card">
+                        <div class="card-header bg-white border-0 pt-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="fw-bold mb-0">@task.ScheduleNumber</h5>
+                                @if (task.Status == "Confirmed")
+                                {
+                                    <span class="badge bg-info">In Progress</span>
+                                }
+                                else if (task.Status == "Completed")
+                                {
+                                    <span class="badge bg-success">Completed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Pending</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <p class="mb-1"><i class="bi bi-box-seam text-gold"></i> <strong>Unit:</strong> @task.UnitNumber</p>
+                                <p class="mb-1"><i class="bi bi-person text-gold"></i> <strong>Client:</strong> @task.BookingNumber</p>
+                                <p class="mb-1"><i class="bi bi-calendar text-gold"></i> <strong>Date:</strong> @task.ScheduledDate.ToString("dd MMM yyyy")</p>
+                                <p class="mb-1"><i class="bi bi-clock text-gold"></i> <strong>Time:</strong> @task.TimeSlot</p>
+                                <p class="mb-1"><i class="bi bi-truck text-gold"></i> <strong>Type:</strong> @task.DeliveryType</p>
+                                @if (!string.IsNullOrEmpty(task.PickupAddress))
+                                {
+                                    <p class="mb-1"><i class="bi bi-geo-alt text-gold"></i> <strong>Pickup:</strong> @task.PickupAddress</p>
+                                }
+                                @if (!string.IsNullOrEmpty(task.DeliveryAddress))
+                                {
+                                    <p class="mb-1"><i class="bi bi-geo-alt-fill text-gold"></i> <strong>Delivery:</strong> @task.DeliveryAddress</p>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(task.SpecialInstructions))
+                            {
+                                <div class="alert alert-light border p-2 small">
+                                    <i class="bi bi-info-circle text-gold"></i> @task.SpecialInstructions
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-4">
+                            @if (task.Status == "Confirmed")
+                            {
+                                <form asp-action="CompleteDelivery" asp-route-id="@task.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-gold w-100">
+                                        <i class="bi bi-check-circle"></i> Mark as Complete
+                                    </button>
+                                </form>
+                            }
+                            else if (task.Status == "Pending")
+                            {
+                                <a href="/Staff/DeliveryHandling" class="btn btn-outline-gold w-100">
+                                    <i class="bi bi-arrow-right"></i> Go to Delivery Handling
+                                </a>
+                            }
+                            else if (task.Status == "Completed")
+                            {
+                                <button class="btn btn-success w-100" disabled>
+                                    <i class="bi bi-check-lg"></i> Completed
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-check-circle fs-1 text-success"></i>
+                <h4 class="text-muted mt-3">All Caught Up!</h4>
+                <p class="text-muted">You have no pending tasks at the moment.</p>
+                <a href="/Staff/DeliveryHandling" class="btn btn-gold mt-2">
+                    <i class="bi bi-truck"></i> View Available Deliveries
+                </a>
+            </div>
+        }
+    </div>
 </div>
+
+<style>
+    .bg-gold {
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        color: var(--charcoal);
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        color: #2c2c2c;
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+        transform: translateY(-2px);
+    }
+    .text-gold {
+        color: var(--gold);
+    }
+    .task-card {
+        transition: all 0.3s ease;
+    }
+    .task-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+</style>

@@ -1,6 +1,7 @@
 ﻿@{
-    var booking = ViewBag.Booking as SmartStorage.Core.DTOs.BookingResponseDto;
+    var booking = ViewBag.Booking as SmartStorage.Core.Entities.Booking;
     ViewData["Title"] = "Payment Successful";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-5">
@@ -22,13 +23,13 @@
                         <div class="col-md-6">
                             <div class="border rounded-3 p-3 bg-light">
                                 <small class="text-muted">Booking Number</small>
-                                <h5 class="mb-0 text-gold">@booking?.BookingNumber</h5>
+                                <h5 class="mb-0 text-gold">@(booking?.BookingNumber ?? "N/A")</h5>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="border rounded-3 p-3 bg-light">
                                 <small class="text-muted">Amount Paid</small>
-                                <h5 class="mb-0 text-gold">R @(booking?.TotalAmount + 75)</h5>
+                                <h5 class="mb-0 text-gold">R @((booking?.TotalAmount ?? 0).ToString("N2"))</h5>
                             </div>
                         </div>
                     </div>
@@ -46,8 +47,8 @@
                                 </a>
                             </div>
                             <div class="col-md-6">
-                                <a href="/Contracts/Create/@booking?.Id" class="btn btn-outline-gold w-100 py-3">
-                                    <i class="bi bi-file-text"></i> View Contract
+                                <a href="/Invoice" class="btn btn-outline-gold w-100 py-3">
+                                    <i class="bi bi-receipt"></i> View Invoices
                                 </a>
                             </div>
                             <div class="col-md-6">

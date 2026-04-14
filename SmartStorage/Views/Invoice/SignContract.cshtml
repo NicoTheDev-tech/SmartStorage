@@ -1,0 +1,184 @@
+﻿@using SmartStorage.Core.Entities
+@{
+    ViewData["Title"] = "Sign Contract";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var booking = ViewBag.Booking as Booking;
+    var contract = ViewBag.Contract as Contract;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-white border-0 pt-4 text-center">
+                    <i class="bi bi-file-text fs-1 text-gold"></i>
+                    <h2 class="mt-2 fw-bold">Storage Contract</h2>
+                    <p class="text-muted">Please review and sign your contract</p>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Contract Details -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold">Contract Summary</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded">
+                                    <small class="text-muted">Contract Number</small>
+                                    <p class="fw-bold mb-0">@contract?.ContractNumber</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded">
+                                    <small class="text-muted">Booking Number</small>
+                                    <p class="fw-bold mb-0">@booking?.BookingNumber</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded">
+                                    <small class="text-muted">Storage Unit</small>
+                                    <p class="fw-bold mb-0">Unit @booking?.StorageUnit?.UnitNumber</p>
+                                    <small>@booking?.StorageUnit?.Size</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded">
+                                    <small class="text-muted">Monthly Rate</small>
+                                    <p class="fw-bold mb-0 text-gold">R @contract?.MonthlyRate.ToString("N2")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded">
+                                    <small class="text-muted">Start Date</small>
+                                    <p class="fw-bold mb-0">@booking?.StartDate.ToString("dd MMM yyyy")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded">
+                                    <small class="text-muted">End Date</small>
+                                    <p class="fw-bold mb-0">@booking?.EndDate.ToString("dd MMM yyyy")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold">Terms and Conditions</h5>
+                        <div class="border rounded p-3" style="height: 300px; overflow-y: auto; background-color: #f8f9fa;">
+                            <pre style="white-space: pre-wrap; font-family: inherit; font-size: 14px;">@contract?.TermsAndConditions</pre>
+                        </div>
+                    </div>
+
+                    <!-- Signature Section -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold">Electronic Signature</h5>
+                        <div class="bg-light p-4 rounded">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="agreeTerms">
+                                <label class="form-check-label fw-semibold" for="agreeTerms">
+                                    I have read, understood, and agree to the Terms and Conditions
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="agreeData">
+                                <label class="form-check-label fw-semibold" for="agreeData">
+                                    I consent to the processing of my personal information
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Full Name (as signature)</label>
+                                <input type="text" class="form-control" id="signatureName" placeholder="Enter your full name">
+                                <small class="text-muted">This will serve as your electronic signature</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Date</label>
+                                <input type="text" class="form-control" id="signatureDate" value="@DateTime.Now.ToString("dd MMM yyyy")" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="/Invoice" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="button" class="btn btn-gold btn-lg" id="signContractBtn" disabled>
+                            <i class="bi bi-pen"></i> Sign & Accept Contract
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function checkForm() {
+                var agreeTerms = $('#agreeTerms').is(':checked');
+                var agreeData = $('#agreeData').is(':checked');
+                var signatureName = $('#signatureName').val().trim();
+                
+                if (agreeTerms && agreeData && signatureName !== '') {
+                    $('#signContractBtn').prop('disabled', false);
+                } else {
+                    $('#signContractBtn').prop('disabled', true);
+                }
+            }
+            
+            $('#agreeTerms, #agreeData, #signatureName').on('change keyup', checkForm);
+            
+            $('#signContractBtn').click(function() {
+                var signatureName = $('#signatureName').val().trim();
+                
+                $.ajax({
+                    url: '/Invoice/SignContract',
+                    method: 'POST',
+                    data: {
+                        bookingId: @booking?.Id,
+                        signatureName: signatureName
+                    },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = '/Invoice/Success/' + response.bookingId;
+                        } else {
+                            alert('Error: ' + response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('Error signing contract. Please try again.');
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        color: #2c2c2c;
+    }
+    pre {
+        white-space: pre-wrap;
+        font-family: inherit;
+    }
+</style>

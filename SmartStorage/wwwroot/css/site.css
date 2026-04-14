@@ -736,3 +736,208 @@ body {
 .btn {
     padding: 12px 25px;
 }
+
+/* Notification Popup Styles */
+.notification-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+}
+
+    .notification-popup.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+.notification-content {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    min-width: 300px;
+}
+
+.notification-popup.success .notification-content {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.notification-popup.error .notification-content {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+.notification-popup .bi {
+    font-size: 20px;
+}
+
+.notification-popup.success .bi {
+    color: #28a745;
+}
+
+.notification-popup.error .bi {
+    color: #dc3545;
+}
+
+@media (max-width: 768px) {
+    .notification-content {
+        min-width: 250px;
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    /* General */
+    body {
+        font-size: 14px;
+    }
+
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    /* Headers */
+    h1.display-5, h1.display-4 {
+        font-size: 1.8rem;
+    }
+
+    /* Stats Cards - stack vertically */
+    .row.g-4 > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
+
+    /* Tables - horizontal scroll */
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        min-width: 600px;
+    }
+
+    /* Cards - full width */
+    .card {
+        margin-bottom: 15px;
+    }
+
+    /* Buttons - stack on mobile */
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+        .btn-group .btn {
+            width: 100%;
+            margin: 2px 0;
+        }
+
+    /* Forms */
+    input, select, textarea {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+
+    /* Modals */
+    .modal-dialog {
+        margin: 10px;
+    }
+
+    .modal-content {
+        border-radius: 10px;
+    }
+
+    /* Navbar */
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+
+    .navbar-nav {
+        flex-direction: column;
+    }
+
+    /* Dropdown menus on mobile */
+    .dropdown-menu {
+        width: 100%;
+        position: static !important;
+        margin-top: 5px;
+    }
+
+    /* Footer */
+    .footer .row > div {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    /* Summary card on Reserve page */
+    .summary-card {
+        margin-top: 20px;
+        position: relative !important;
+        top: 0 !important;
+    }
+
+    /* Step indicator for Reserve page */
+    .step-indicator {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .step {
+        min-width: 55px;
+    }
+
+    .step-circle {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .step-label {
+        font-size: 0.6rem;
+    }
+
+    /* Task cards stack */
+    .row.g-4 .col-md-6.col-lg-4 {
+        width: 100%;
+    }
+}
+
+/* Extra small devices (phones, 576px and below) */
+@media (max-width: 576px) {
+    h1.display-5 {
+        font-size: 1.5rem;
+    }
+
+    .step-label {
+        display: none;
+    }
+
+    .step-circle {
+        width: 35px;
+        height: 35px;
+    }
+
+    .card-footer .d-flex {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .card-footer .btn {
+        width: 100%;
+    }
+}

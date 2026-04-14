@@ -7,6 +7,7 @@ using SmartStorage.Core.Interfaces;
 using SmartStorage.Core.DTOs;
 using SmartStorage.Infrastructure.Data;
 using SmartStorage.ViewModels;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -38,36 +39,51 @@ namespace SmartStorage.Controllers
             var today = DateTime.Today;
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Get today's deliveries
+            var pendingDeliveries = await _context.DeliverySchedules
+                .CountAsync(d => d.Status == ScheduleStatus.Pending);
+
+            var pendingIntakes = await _context.DeliverySchedules
+                .CountAsync(d => d.Status == ScheduleStatus.Pending && d.DeliveryType == DeliveryType.Dropoff);
+
+            var inProgress = await _context.DeliverySchedules
+                .CountAsync(d => d.Status == ScheduleStatus.Confirmed);
+
+            var completedToday = await _context.DeliverySchedules
+                .CountAsync(d => d.Status == ScheduleStatus.Completed && d.CompletedAt.HasValue && d.CompletedAt.Value.Date == today);
+
             var todayDeliveries = await _context.DeliverySchedules
                 .Include(d => d.Booking)
                     .ThenInclude(b => b != null ? b.Client : null)
-                .Where(d => d.ScheduledDate.Date == today && d.Status != ScheduleStatus.Completed)
-                .OrderBy(d => d.ScheduledTime)
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b != null ? b.StorageUnit : null)
+                .Where(d => d.ScheduledDate.Date == today && d.Status != ScheduleStatus.Cancelled && d.Status != ScheduleStatus.Completed)
+                .OrderBy(d => d.ScheduledDate)
+                .Select(d => MapToDtoStatic(d))
                 .ToListAsync();
 
-            // Get pending schedules
             var pendingSchedules = await _context.DeliverySchedules
                 .Include(d => d.Booking)
                     .ThenInclude(b => b != null ? b.Client : null)
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b != null ? b.StorageUnit : null)
                 .Where(d => d.Status == ScheduleStatus.Pending)
                 .OrderBy(d => d.ScheduledDate)
                 .Take(10)
+                .Select(d => MapToDtoStatic(d))
                 .ToListAsync();
 
             var viewModel = new StaffDashboardViewModel
             {
-                PendingIntakes = await _context.DeliverySchedules.CountAsync(d => d.Status == ScheduleStatus.Pending && d.DeliveryType == DeliveryType.Dropoff),
-                PendingDeliveries = await _context.DeliverySchedules.CountAsync(d => d.Status == ScheduleStatus.Pending && d.DeliveryType == DeliveryType.Collection),
-                InProgressTasks = await _context.DeliverySchedules.CountAsync(d => d.Status == ScheduleStatus.Confirmed),
-                CompletedToday = await _context.DeliverySchedules.CountAsync(d => d.Status == ScheduleStatus.Completed && d.CompletedAt.HasValue && d.CompletedAt.Value.Date == today),
+                PendingIntakes = pendingIntakes,
+                PendingDeliveries = pendingDeliveries,
+                InProgressTasks = inProgress,
+                CompletedToday = completedToday,
                 AvailableVehicles = await _context.Vehicles.CountAsync(v => v.Status == VehicleStatus.Available),
                 StorageUnitsInUse = await _context.Bookings.CountAsync(b => b.Status == BookingStatus.Active),
-                TodayDeliveries = todayDeliveries.Select(d => MapToDtoStatic(d)).ToList(),
-                PendingSchedules = pendingSchedules.Select(d => MapToDtoStatic(d)).ToList()
+                TodayDeliveries = todayDeliveries,
+                PendingSchedules = pendingSchedules
             };
 
-            // Get staff name
             if (!string.IsNullOrEmpty(userId))
             {
                 var user = await _userManager.FindByIdAsync(userId);
@@ -84,13 +100,15 @@ namespace SmartStorage.Controllers
         [HttpGet("GoodsIntake")]
         public async Task<IActionResult> GoodsIntake()
         {
+            // Show BOTH Pending AND InProgress deliveries
             var schedules = await _context.DeliverySchedules
                 .Include(d => d.Booking)
                     .ThenInclude(b => b != null ? b.Client : null)
                 .Include(d => d.Booking)
                     .ThenInclude(b => b != null ? b.StorageUnit : null)
-                .Where(d => d.Status == ScheduleStatus.Pending && d.DeliveryType == DeliveryType.Dropoff)
+                .Where(d => d.Status == ScheduleStatus.Pending || d.Status == ScheduleStatus.InProgress)
                 .OrderBy(d => d.ScheduledDate)
+                .Select(d => MapToDtoStatic(d))
                 .ToListAsync();
             return View(schedules);
         }
@@ -146,12 +164,14 @@ namespace SmartStorage.Controllers
         [HttpGet("StorageOperations")]
         public async Task<IActionResult> StorageOperations()
         {
+            // Return actual Booking entities, not anonymous objects
             var activeBookings = await _context.Bookings
                 .Include(b => b.Client)
                 .Include(b => b.StorageUnit)
-                .Where(b => b.Status == BookingStatus.Active)
+                .Where(b => b.Status == BookingStatus.Active || b.Status == BookingStatus.Confirmed)
                 .OrderBy(b => b.EndDate)
                 .ToListAsync();
+
             return View(activeBookings);
         }
 
@@ -161,9 +181,12 @@ namespace SmartStorage.Controllers
             var schedules = await _context.DeliverySchedules
                 .Include(d => d.Booking)
                     .ThenInclude(b => b != null ? b.Client : null)
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b != null ? b.StorageUnit : null)
                 .Include(d => d.AssignedDriver)
                 .Where(d => d.Status == ScheduleStatus.Pending || d.Status == ScheduleStatus.Confirmed)
                 .OrderBy(d => d.ScheduledDate)
+                .Select(d => MapToDtoStatic(d))
                 .ToListAsync();
             return View(schedules);
         }
@@ -177,7 +200,6 @@ namespace SmartStorage.Controllers
 
             if (schedule != null && schedule.Status == ScheduleStatus.Pending && !string.IsNullOrEmpty(userId))
             {
-                // Ensure driver record exists
                 var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.UserId == userId);
                 if (driver == null)
                 {
@@ -217,88 +239,55 @@ namespace SmartStorage.Controllers
             return RedirectToAction("DeliveryHandling");
         }
 
+        [HttpGet("DeliveryDetails/{id}")]
+        public async Task<IActionResult> DeliveryDetails(int id)
+        {
+            var schedule = await _context.DeliverySchedules
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b != null ? b.Client : null)
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b != null ? b.StorageUnit : null)
+                .Include(d => d.AssignedDriver)
+                .Where(d => d.Id == id)
+                .Select(d => MapToDtoStatic(d))
+                .FirstOrDefaultAsync();
+
+            if (schedule == null)
+            {
+                return NotFound();
+            }
+
+            return View(schedule);
+        }
+
         [HttpGet("Tasks")]
         public async Task<IActionResult> Tasks()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var tasks = new List<DeliverySchedule>();
+            var tasks = new List<DeliveryScheduleResponseDto>();
 
             if (!string.IsNullOrEmpty(userId))
             {
-                // First, find the staff member as a Driver
                 var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.UserId == userId);
 
                 if (driver != null)
                 {
+                    // Show ALL tasks assigned to this driver (including completed)
                     tasks = await _context.DeliverySchedules
                         .Include(d => d.Booking)
                             .ThenInclude(b => b != null ? b.Client : null)
                         .Include(d => d.Booking)
                             .ThenInclude(b => b != null ? b.StorageUnit : null)
-                        .Where(d => d.AssignedDriverId == driver.Id && d.Status != ScheduleStatus.Completed)
-                        .OrderBy(d => d.ScheduledDate)
+                        .Where(d => d.AssignedDriverId == driver.Id)  // Show ALL tasks, no status filter
+                        .OrderByDescending(d => d.ScheduledDate)
+                        .Select(d => MapToDtoStatic(d))
                         .ToListAsync();
-                }
-                else
-                {
-                    // If no driver record exists, create one automatically
-                    var user = await _userManager.FindByIdAsync(userId);
-                    if (user != null)
-                    {
-                        driver = new Driver
-                        {
-                            UserId = userId,
-                            FullName = user.UserName ?? "Staff",
-                            LicenseNumber = "PENDING",
-                            Phone = string.Empty,
-                            IsAvailable = true
-                        };
-                        _context.Drivers.Add(driver);
-                        await _context.SaveChangesAsync();
-
-                        // Now get tasks assigned to this new driver
-                        tasks = await _context.DeliverySchedules
-                            .Include(d => d.Booking)
-                                .ThenInclude(b => b != null ? b.Client : null)
-                            .Include(d => d.Booking)
-                                .ThenInclude(b => b != null ? b.StorageUnit : null)
-                            .Where(d => d.AssignedDriverId == driver.Id && d.Status != ScheduleStatus.Completed)
-                            .OrderBy(d => d.ScheduledDate)
-                            .ToListAsync();
-                    }
                 }
             }
 
             return View(tasks);
         }
 
-        private async Task<int?> GetOrCreateDriverId(string userId)
-        {
-            if (string.IsNullOrEmpty(userId))
-                return null;
-
-            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.UserId == userId);
-            if (driver == null)
-            {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user != null)
-                {
-                    driver = new Driver
-                    {
-                        UserId = userId,
-                        FullName = user.UserName ?? "Staff",
-                        LicenseNumber = "PENDING",
-                        Phone = string.Empty,
-                        IsAvailable = true
-                    };
-                    _context.Drivers.Add(driver);
-                    await _context.SaveChangesAsync();
-                }
-            }
-            return driver?.Id;
-        }
-
-        // Static method to map DeliverySchedule to DTO - FIXES THE ERROR
         private static DeliveryScheduleResponseDto MapToDtoStatic(DeliverySchedule schedule)
         {
             return new DeliveryScheduleResponseDto
@@ -310,19 +299,22 @@ namespace SmartStorage.Controllers
                 UnitNumber = schedule.Booking?.StorageUnit?.UnitNumber ?? "Unknown",
                 DeliveryType = schedule.DeliveryType.ToString(),
                 ScheduledDate = schedule.ScheduledDate,
-                TimeSlot = schedule.TimeSlot,
-                PickupAddress = schedule.PickupAddress,
-                DeliveryAddress = schedule.DeliveryAddress,
-                GoodsDescription = schedule.GoodsDescription,
+                TimeSlot = schedule.TimeSlot ?? string.Empty,
+                PickupAddress = schedule.PickupAddress ?? string.Empty,
+                DeliveryAddress = schedule.DeliveryAddress ?? string.Empty,
+                GoodsDescription = schedule.GoodsDescription ?? string.Empty,
                 ItemCount = schedule.ItemCount,
                 EstimatedWeight = schedule.EstimatedWeight,
                 Status = schedule.Status.ToString(),
                 CreatedAt = schedule.CreatedAt,
                 ConfirmedAt = schedule.ConfirmedAt,
+                CompletedAt = schedule.CompletedAt,  // Add this line
                 AssignedDriver = schedule.AssignedDriver?.FullName,
-                SpecialInstructions = schedule.SpecialInstructions,
-                ContactPerson = schedule.ContactPerson,
-                ContactPhone = schedule.ContactPhone
+                SpecialInstructions = schedule.SpecialInstructions ?? string.Empty,
+                ContactPerson = schedule.ContactPerson ?? string.Empty,
+                ContactPhone = schedule.ContactPhone ?? string.Empty,
+                CanReschedule = schedule.Status == ScheduleStatus.Pending || schedule.Status == ScheduleStatus.Confirmed,
+                CanSchedule = schedule.Status == ScheduleStatus.Pending
             };
         }
     }

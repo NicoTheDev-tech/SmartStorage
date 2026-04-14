@@ -1,6 +1,7 @@
-﻿@model IEnumerable<SmartStorage.Core.Entities.DeliverySchedule>
+﻿@model IEnumerable<SmartStorage.Core.DTOs.DeliveryScheduleResponseDto>
 @{
     ViewData["Title"] = "Delivery & Logistics";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
@@ -9,20 +10,10 @@
             <h1 class="display-5 fw-bold">Delivery & Logistics</h1>
             <p class="text-muted">Manage all delivery schedules and logistics</p>
         </div>
-        <div>
-            <a href="/Admin/Delivery/Calendar" class="btn btn-outline-gold">
-                <i class="bi bi-calendar"></i> Calendar View
-            </a>
-        </div>
+        <a href="/Admin/Delivery/Calendar" class="btn btn-outline-gold">
+            <i class="bi bi-calendar"></i> Calendar View
+        </a>
     </div>
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
@@ -42,53 +33,43 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var schedule in Model)
+                        @if (Model != null && Model.Any())
                         {
-                            <tr>
-                                <td class="fw-semibold">@schedule.ScheduleNumber</td>
-                                <td>@schedule.Booking?.Client?.FullName</td>
-                                <td>@schedule.Booking?.StorageUnit?.UnitNumber</td>
-                                <td>@schedule.DeliveryType</td>
-                                <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
-                                <td>@schedule.TimeSlot</td>
-                                <td>@schedule.ItemCount</td>
-                                <td>
-                                    @{
-                                        var statusClass = schedule.Status.ToString() switch
+                            @foreach (var schedule in Model)
+                            {
+                                <tr>
+                                    <td>@schedule.ScheduleNumber</td>
+                                    <td>@schedule.ClientName</td>
+                                    <td>@schedule.UnitNumber</td>
+                                    <td>@schedule.DeliveryType</td>
+                                    <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                    <td>@schedule.TimeSlot</td>
+                                    <td>@schedule.ItemCount</td>
+                                    <td>
+                                        @if (schedule.Status == "Completed")
                                         {
-                                            "Pending" => "warning",
-                                            "Confirmed" => "info",
-                                            "Completed" => "success",
-                                            "Cancelled" => "danger",
-                                            _ => "secondary"
-                                        };
-                                    }
-                                    <span class="badge bg-@statusClass">@schedule.Status</span>
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="/Admin/Delivery/Details/@schedule.Id" class="btn btn-sm btn-outline-gold">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        @if (schedule.Status.ToString() == "Pending")
-                                        {
-                                            <form asp-action="ConfirmDelivery" asp-route-id="@schedule.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-success ms-1">Confirm</button>
-                                            </form>
+                                            <span class="badge bg-success">Completed</span>
                                         }
-                                        @if (schedule.Status.ToString() == "Confirmed")
+                                        else if (schedule.Status == "Cancelled")
                                         {
-                                            <form asp-action="CompleteDelivery" asp-route-id="@schedule.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-primary ms-1">Complete</button>
-                                            </form>
+                                            <span class="badge bg-danger">Cancelled</span>
                                         }
-                                    </div>
-                                </td>
-                            </tr>
+                                        else if (schedule.Status == "Confirmed")
+                                        {
+                                            <span class="badge bg-info">Confirmed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="/Admin/Delivery/Details/@schedule.Id" class="btn btn-sm btn-primary">View</a>
+                                    </td>
+                                </tr>
+                            }
                         }
-                        @if (!Model.Any())
+                        else
                         {
                             <tr>
                                 <td colspan="9" class="text-center py-5">
@@ -105,17 +86,16 @@
 </div>
 
 <style>
-    .text-gold {
-        color: var(--gold);
-    }
     .btn-outline-gold {
         border: 2px solid #D4AF37;
         color: #D4AF37;
         background: transparent;
         font-weight: 600;
+        transition: all 0.3s ease;
     }
     .btn-outline-gold:hover {
         background: #D4AF37;
         color: #2c2c2c;
+        transform: translateY(-2px);
     }
 </style>

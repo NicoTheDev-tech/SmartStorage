@@ -1,0 +1,4 @@
+﻿ALTER TABLE Bookings ADD MonthlyAmount DECIMAL(18,2) NULL;
+ALTER TABLE Bookings ADD RemainingMonths INT NULL;
+ALTER TABLE Bookings ADD NextPaymentDate DATETIME NULL;
+ALTER TABLE Bookings ADD PaymentStatus NVARCHAR(50) NULL;

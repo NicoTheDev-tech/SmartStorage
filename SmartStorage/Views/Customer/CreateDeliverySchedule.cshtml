@@ -22,12 +22,16 @@
                             <label asp-for="BookingId" class="form-label">Select Booking</label>
                             <select asp-for="BookingId" class="form-select" required>
                                 <option value="">-- Select a booking --</option>
-                                @if (bookings != null)
+                                @if (bookings != null && bookings.Any())
                                 {
-                                    @foreach (var booking in bookings)
+                                    foreach (var booking in bookings)
                                     {
                                         <option value="@booking.Id">@booking.BookingNumber - Unit @booking.UnitNumber (@booking.StartDate.ToString("dd MMM yyyy") to @booking.EndDate.ToString("dd MMM yyyy"))</option>
                                     }
+                                }
+                                else
+                                {
+                                    <option value="" disabled>No active bookings found</option>
                                 }
                             </select>
                             <span asp-validation-for="BookingId" class="text-danger"></span>
@@ -56,7 +60,7 @@
                                     <option value="">-- Select time slot --</option>
                                     @if (timeSlots != null)
                                     {
-                                        @foreach (var slot in timeSlots)
+                                        foreach (var slot in timeSlots)
                                         {
                                             <option value="@slot">@slot</option>
                                         }

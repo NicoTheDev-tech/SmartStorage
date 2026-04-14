@@ -1,44 +1,34 @@
-﻿@model IEnumerable<SmartStorage.Core.Entities.DeliverySchedule>
+﻿@model IEnumerable<SmartStorage.Core.DTOs.DeliveryScheduleResponseDto>
 @{
     ViewData["Title"] = "Goods Intake";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="display-5 fw-bold">Goods Intake</h1>
-            <p class="text-muted">Receive and inspect incoming goods</p>
+            <p class="text-muted">Process incoming customer goods</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-gold p-2">Today: @DateTime.Now.ToString("dd MMM yyyy")</span>
         </div>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
     <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+            <h5 class="mb-0"><i class="bi bi-box-seam text-gold"></i> Pending Intake Requests</h5>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="bg-light">
                         <tr>
                             <th>Schedule #</th>
-                            <th>Client</th>
                             <th>Unit</th>
-                            <th>Goods Description</th>
+                            <th>Client</th>
+                            <th>Date</th>
                             <th>Items</th>
-                            <th>Scheduled Date</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -50,32 +40,37 @@
                             {
                                 <tr>
                                     <td class="fw-semibold">@schedule.ScheduleNumber</td>
-                                    <td>@(schedule.Booking?.Client?.FullName ?? "Unknown")</td>
-                                    <td>@(schedule.Booking?.StorageUnit?.UnitNumber ?? "Unknown")</td>
-                                    <td>@schedule.GoodsDescription</td>
-                                    <td>@schedule.ItemCount</td>
+                                    <td>@schedule.UnitNumber</td>
+                                    <td>@schedule.BookingNumber</td>
                                     <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                    <td>@schedule.ItemCount</td>
                                     <td>
-                                        @{
-                                            var statusClass = "warning";
-                                            if (schedule.Status.ToString() == "InProgress") { statusClass = "info"; }
-                                            else if (schedule.Status.ToString() == "Completed") { statusClass = "success"; }
+                                        @if (schedule.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
                                         }
-                                        <span class="badge bg-@statusClass">@schedule.Status</span>
+                                        else if (schedule.Status == "InProgress")
+                                        {
+                                            <span class="badge bg-info">In Progress</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Completed</span>
+                                        }
                                     </td>
                                     <td>
-                                        @if (schedule.Status.ToString() == "Pending")
+                                        @if (schedule.Status == "Pending")
                                         {
-                                            <form asp-action="StartIntake" asp-route-id="@schedule.Id" method="post" class="d-inline">
+                                            <form asp-action="StartIntake" asp-route-id="@schedule.Id" method="post" style="display:inline-block">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-primary">Start Intake</button>
+                                                <button type="submit" class="btn btn-sm btn-primary">Start</button>
                                             </form>
                                         }
-                                        else if (schedule.Status.ToString() == "InProgress")
+                                        @if (schedule.Status == "InProgress")
                                         {
-                                            <form asp-action="CompleteIntake" asp-route-id="@schedule.Id" method="post" class="d-inline">
+                                            <form asp-action="CompleteIntake" asp-route-id="@schedule.Id" method="post" style="display:inline-block">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-success">Complete & Store</button>
+                                                <button type="submit" class="btn btn-sm btn-success">Complete</button>
                                             </form>
                                         }
                                     </td>
@@ -85,9 +80,9 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center py-5">
-                                    <i class="bi bi-box-seam fs-1 text-muted"></i>
-                                    <p class="text-muted mt-2">No pending goods intake</p>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No pending intake requests</p>
                                 </td>
                             </tr>
                         }
@@ -99,18 +94,11 @@
 </div>
 
 <style>
+    .bg-gold {
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        color: var(--charcoal);
+    }
     .text-gold {
         color: var(--gold);
-    }
-    .btn-outline-gold {
-        border: 2px solid #D4AF37;
-        color: #D4AF37;
-        background: transparent;
-        font-weight: 600;
-    }
-    .btn-outline-gold:hover {
-        background: #D4AF37;
-        color: #2c2c2c;
-        transform: translateY(-2px);
     }
 </style>

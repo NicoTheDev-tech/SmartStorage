@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<SmartStorage.Core.DTOs.DeliveryScheduleResponseDto>
 @{
     ViewData["Title"] = "Delivery Schedule";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
@@ -26,7 +27,6 @@
         </div>
     }
 
-    <!-- Schedule New Delivery Button -->
     <div class="mb-4 text-end">
         <a href="/Customer/CreateDeliverySchedule" class="btn btn-gold">
             <i class="bi bi-plus-circle"></i> Schedule New Delivery
@@ -47,7 +47,8 @@
                             <th>Items</th>
                             <th>Status</th>
                             <th>Actions</th>
-                        </thead>
+                        </tr>
+                    </thead>
                     <tbody>
                         @if (Model != null && Model.Any())
                         {
@@ -55,39 +56,38 @@
                             {
                                 <tr>
                                     <td class="fw-semibold">@schedule.ScheduleNumber</td>
-                                    <td>@schedule.UnitNumber</td>
+                                    <td>@(schedule.UnitNumber ?? "N/A")</td>
                                     <td>@schedule.DeliveryType</td>
                                     <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
                                     <td>@schedule.TimeSlot</td>
                                     <td>@schedule.ItemCount</td>
                                     <td>
-                                        @{
-                                            var statusClass = schedule.Status switch
-                                            {
-                                                "Pending" => "warning",
-                                                "Confirmed" => "info",
-                                                "Completed" => "success",
-                                                "Cancelled" => "danger",
-                                                _ => "secondary"
-                                            };
+                                        @if (schedule.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
                                         }
-                                        <span class="badge bg-@statusClass">@schedule.Status</span>
+                                        else if (schedule.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success">Completed</span>
+                                        }
+                                        else if (schedule.Status == "Confirmed")
+                                        {
+                                            <span class="badge bg-info">Confirmed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@schedule.Status</span>
+                                        }
                                     </td>
                                     <td>
-                                        <a href="/Customer/DeliveryScheduleDetails/@schedule.Id" class="btn btn-sm btn-outline-gold">
-                                            <i class="bi bi-eye"></i> View
-                                        </a>
-                                        @if (schedule.CanReschedule)
+                                        <a href="/Customer/DeliveryScheduleDetails/@schedule.Id" class="btn btn-sm btn-primary">View</a>
+                                        @if (schedule.CanReschedule && schedule.Status != "Completed")
                                         {
-                                            <a href="/Customer/RescheduleDelivery/@schedule.Id" class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-calendar"></i> Reschedule
-                                            </a>
+                                            <a href="/Customer/RescheduleDelivery/@schedule.Id" class="btn btn-sm btn-warning">Reschedule</a>
                                         }
-                                        @if (schedule.CanSchedule)
+                                        @if (schedule.CanSchedule && schedule.Status != "Completed")
                                         {
-                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="cancelSchedule(@schedule.Id)">
-                                                <i class="bi bi-x-circle"></i> Cancel
-                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="showCancelModal(@schedule.Id)">Cancel</button>
                                         }
                                     </td>
                                 </tr>
@@ -99,9 +99,7 @@
                                 <td colspan="8" class="text-center py-5">
                                     <i class="bi bi-truck fs-1 text-muted"></i>
                                     <p class="text-muted mt-2">No delivery schedules found</p>
-                                    <a href="/Customer/CreateDeliverySchedule" class="btn btn-gold mt-2">
-                                        <i class="bi bi-plus-circle"></i> Schedule Your First Delivery
-                                    </a>
+                                    <a href="/Customer/CreateDeliverySchedule" class="btn btn-gold mt-2">Schedule Your First Delivery</a>
                                 </td>
                             </tr>
                         }
@@ -112,19 +110,38 @@
     </div>
 </div>
 
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Delivery
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-calendar-x fs-1 text-danger mb-3 d-block"></i>
+                <h5 class="mb-2">Are you sure?</h5>
+                <p class="text-muted mb-0">Do you really want to cancel this delivery schedule?</p>
+                <p class="text-muted small mt-2">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> No, Keep It
+                </button>
+                <button type="button" class="btn btn-danger px-4" id="confirmCancelBtn">
+                    <i class="bi bi-check-circle"></i> Yes, Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form id="cancelForm" asp-action="CancelDeliverySchedule" method="post" style="display:none;">
     @Html.AntiForgeryToken()
     <input type="hidden" id="cancelScheduleId" name="id" />
 </form>
-
-<script>
-    function cancelSchedule(id) {
-        if (confirm('Are you sure you want to cancel this delivery schedule?')) {
-            document.getElementById('cancelScheduleId').value = id;
-            document.getElementById('cancelForm').submit();
-        }
-    }
-</script>
 
 <style>
     .text-gold {
@@ -141,14 +158,16 @@
         box-shadow: 0 5px 15px rgba(212,175,55,0.3);
         color: #2c2c2c;
     }
-    .btn-outline-gold {
-        border: 2px solid #D4AF37;
-        color: #D4AF37;
-        background: transparent;
-        font-weight: 600;
-    }
-    .btn-outline-gold:hover {
-        background: #D4AF37;
-        color: #2c2c2c;
-    }
 </style>
+
+<script>
+    function showCancelModal(id) {
+        document.getElementById('cancelScheduleId').value = id;
+        var modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+        modal.show();
+    }
+
+    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+        document.getElementById('cancelForm').submit();
+    });
+</script>

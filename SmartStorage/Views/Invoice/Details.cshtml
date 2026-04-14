@@ -1,0 +1,209 @@
+﻿@using SmartStorage.Core.Entities
+@model SmartStorage.Core.Entities.Invoice
+
+@{
+    ViewData["Title"] = $"Invoice #{Model?.InvoiceNumber}";
+    var booking = Model?.Booking;
+    var client = Model?.Client;
+    var storageUnit = booking?.StorageUnit;
+}
+
+@if (Model == null)
+{
+    <div class="container py-5">
+        <div class="alert alert-danger">Invoice not found</div>
+    </div>
+    return;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <!-- Header -->
+                <div class="card-header bg-primary text-white rounded-top-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0"><i class="bi bi-receipt me-2"></i>Invoice</h2>
+                            <small>#@Model.InvoiceNumber</small>
+                        </div>
+                        <div>
+                            @if (Model.Status == InvoiceStatus.Paid)
+                            {
+                                <span class="badge bg-success fs-6 px-3 py-2">PAID</span>
+                            }
+                            else if (Model.Status == InvoiceStatus.Pending)
+                            {
+                                <span class="badge bg-warning fs-6 px-3 py-2">PENDING</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary fs-6 px-3 py-2">CANCELLED</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Invoice Dates -->
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <h6 class="text-muted mb-1">Invoice Date:</h6>
+                            <p class="fw-bold mb-0">@Model.InvoiceDate.ToString("dd MMMM yyyy")</p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h6 class="text-muted mb-1">Due Date:</h6>
+                            <p class="fw-bold mb-0">@Model.DueDate.ToString("dd MMMM yyyy")</p>
+                        </div>
+                    </div>
+
+                    <!-- Bill To -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">BILL TO:</h6>
+                        <p class="mb-0 fw-bold">@(client?.FullName ?? "N/A")</p>
+                        <p class="mb-0">@(client?.Email ?? "N/A")</p>
+                        <p class="mb-0">@(client?.Phone ?? "N/A")</p>
+                        <p class="mb-0">@(client?.Address ?? "N/A")</p>
+                    </div>
+
+                    <!-- Storage Unit Details -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="text-muted mb-2">STORAGE UNIT:</h6>
+                        <p class="mb-1"><strong>Unit:</strong> @(storageUnit?.UnitNumber ?? "Not assigned")</p>
+                        <p class="mb-1"><strong>Size:</strong> @(storageUnit?.Size ?? "Not specified")</p>
+                        <p class="mb-1"><strong>Location:</strong> @(storageUnit?.Location ?? "Not specified")</p>
+                        <p class="mb-0"><strong>Period:</strong> @Model.PeriodStart.ToString("dd MMM yyyy") - @Model.PeriodEnd.ToString("dd MMM yyyy")</p>
+                    </div>
+
+                    <!-- Invoice Items Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-center" style="width: 100px">Quantity</th>
+                                    <th class="text-end" style="width: 120px">Unit Price</th>
+                                    <th class="text-end" style="width: 120px">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    decimal baseAmount = Model.Amount - 75;
+                                }
+                                <tr>
+                                    <td>Storage Fee (@storageUnit?.Size ?? "Unit")</td
+                                    <td class="text-center">1</td
+                                    <td class="text-end">R @baseAmount.ToString("N2")</td
+                                    <td class="text-end">R @baseAmount.ToString("N2")</td
+                                </tr>
+                                <tr>
+                                    <td>Admin Fee</td
+                                    <td class="text-center">1</td
+                                    <td class="text-end">R 25.00</td
+                                    <td class="text-end">R 25.00</td
+                                </tr>
+                                <tr>
+                                    <td>Security Deposit</td
+                                    <td class="text-center">1</td
+                                    <td class="text-end">R 50.00</td
+                                    <td class="text-end">R 50.00</td
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals Section -->
+                    <div class="row mt-3">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="border rounded p-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>R @baseAmount.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Admin Fee:</span>
+                                    <span>R 25.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Security Deposit:</span>
+                                    <span>R 50.00</span>
+                                </div>
+                                <hr />
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>TOTAL:</strong>
+                                    <strong class="text-gold">R @Model.Amount.ToString("N2")</strong>
+                                </div>
+                                @if (Model.Status == InvoiceStatus.Paid)
+                                {
+                                    <div class="d-flex justify-content-between text-success">
+                                        <span>Amount Paid:</span>
+                                        <span>R @Model.AmountPaid.ToString("N2")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-success">
+                                        <span>Balance Due:</span>
+                                        <span>R 0.00</span>
+                                    </div>
+                                }
+                                else if (Model.AmountPaid > 0)
+                                {
+                                    <div class="d-flex justify-content-between text-warning">
+                                        <span>Amount Paid:</span>
+                                        <span>R @Model.AmountPaid.ToString("N2")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Balance Due:</span>
+                                        <span>R @Model.Balance.ToString("N2")</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="alert alert-secondary mt-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Notes:</strong> @Model.Notes
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="javascript:window.print()" class="btn btn-outline-secondary">
+                            <i class="bi bi-printer me-2"></i>Print
+                        </a>
+                        <a href="/Invoice" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Invoices
+                        </a>
+                        @if (Model.Status != InvoiceStatus.Paid && Model.Status != InvoiceStatus.Cancelled)
+                        {
+                            <a href="/Invoice/Pay/@Model.BookingId" class="btn btn-success">
+                                <i class="bi bi-credit-card me-2"></i>Pay Now
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="card-footer text-center text-muted py-3">
+                    <small>Thank you for choosing SmartStorage! For questions, contact us at support@smartstorage.co.za</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    @@media print {
+        .btn, .card-footer {
+            display: none !important;
+        }
+        .card {
+            box-shadow: none !important;
+        }
+    }
+</style>

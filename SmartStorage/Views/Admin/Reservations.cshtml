@@ -1,29 +1,20 @@
-﻿@model IEnumerable<SmartStorage.Core.Entities.Booking>
+﻿@using SmartStorage.Core.Entities
+@model IEnumerable<SmartStorage.Core.Entities.Booking>
+
 @{
-    ViewData["Title"] = "Manage Reservations";
+    ViewData["Title"] = "Reservations";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="display-5 fw-bold">Manage Reservations</h1>
-            <p class="text-muted">View and manage all customer bookings</p>
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Reservations</h3>
         </div>
-    </div>
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
+                <table class="table table-hover">
+                    <thead>
                         <tr>
                             <th>Booking #</th>
                             <th>Client</th>
@@ -39,37 +30,46 @@
                         @foreach (var booking in Model)
                         {
                             <tr>
-                                <td class="fw-semibold">@booking.BookingNumber</td>
-                                <td>@booking.Client?.FullName</td>
-                                <td>@booking.StorageUnit?.UnitNumber</td>
+                                <td>@booking.BookingNumber</td>
+                                <td>@(booking.Client?.FullName ?? "Unknown")</td>
+                                <td>@(booking.StorageUnit?.UnitNumber ?? "Unknown")</td>
                                 <td>@booking.StartDate.ToString("dd MMM yyyy")</td>
                                 <td>@booking.EndDate.ToString("dd MMM yyyy")</td>
-                                <td>R @booking.TotalAmount.ToString("N0")</td>
+                                <td>R @booking.TotalAmount.ToString("N2")</td>
                                 <td>
-                                    <span class="badge bg-@(booking.Status.ToString() == "Confirmed" ? "success" : booking.Status.ToString() == "Pending" ? "warning" : "secondary")">
-                                        @booking.Status
-                                    </span>
+                                    @if (booking.Status == BookingStatus.Confirmed)
+                                    {
+                                        <span class="badge bg-success">Confirmed</span>
+                                    }
+                                    else if (booking.Status == BookingStatus.Pending)
+                                    {
+                                        <span class="badge bg-warning">Pending</span>
+                                    }
+                                    else if (booking.Status == BookingStatus.Cancelled)
+                                    {
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">@booking.Status</span>
+                                    }
                                 </td>
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        @if (booking.Status.ToString() == "Pending")
-                                        {
-                                            <form asp-action="UpdateBookingStatus" asp-route-id="@booking.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="status" value="Confirmed" />
-                                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                                            </form>
-                                            <form asp-action="UpdateBookingStatus" asp-route-id="@booking.Id" method="post" class="d-inline ms-1">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="status" value="Cancelled" />
-                                                <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">No actions</span>
-                                        }
-                                    </div>
+                                    @if (booking.Status == BookingStatus.Pending)
+                                    {
+                                        <form asp-action="UpdateBookingStatus" asp-route-id="@booking.Id" asp-route-status="Confirmed" method="post" style="display:inline-block">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                        </form>
+                                    }
+                                    
+                                    @if (booking.Status != BookingStatus.Cancelled)
+                                    {
+                                        <form asp-action="UpdateBookingStatus" asp-route-id="@booking.Id" asp-route-status="Cancelled" method="post" style="display:inline-block">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+                                        </form>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -78,4 +78,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> 

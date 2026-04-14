@@ -1,6 +1,7 @@
 ﻿@model SmartStorage.ViewModels.StaffDashboardViewModel
 @{
     ViewData["Title"] = "Staff Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
@@ -11,11 +12,11 @@
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h1 class="text-white mb-2">Welcome, @Model.StaffName!</h1>
-                            <p class="text-white-50 mb-0">Today's Operations Overview</p>
+                            <h1 class="mb-2" style="color: #000000;">👋 Welcome, @Model.StaffName!</h1>
+                            <p class="mb-0" style="color: #000000; opacity: 0.8;">Today's Operations Overview</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <i class="bi bi-person-badge text-white" style="font-size: 4rem;"></i>
+                            <i class="bi bi-person-badge" style="font-size: 4rem; color: #000000;"></i>
                         </div>
                     </div>
                 </div>

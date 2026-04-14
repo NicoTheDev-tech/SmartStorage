@@ -1,6 +1,7 @@
-﻿@model SmartStorage.Core.Entities.DeliverySchedule
+﻿@model SmartStorage.Core.DTOs.DeliveryScheduleResponseDto
 @{
     ViewData["Title"] = "Delivery Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-5">
@@ -17,7 +18,7 @@
                         </div>
                         <div>
                             @{
-                                var statusClass = Model.Status.ToString() switch
+                                var statusClass = Model.Status switch
                                 {
                                     "Pending" => "warning",
                                     "Confirmed" => "info",
@@ -35,8 +36,8 @@
                         <div class="col-md-6">
                             <div class="border p-3 rounded-3 bg-light">
                                 <h6 class="text-gold mb-3"><i class="bi bi-box"></i> Storage Details</h6>
-                                <p class="mb-1"><strong>Unit Number:</strong> @Model.Booking?.StorageUnit?.UnitNumber</p>
-                                <p class="mb-0"><strong>Booking Reference:</strong> @Model.Booking?.BookingNumber</p>
+                                <p class="mb-1"><strong>Unit Number:</strong> @Model.UnitNumber</p>
+                                <p class="mb-0"><strong>Client:</strong> @Model.ClientName</p>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -78,19 +79,19 @@
                                 </div>
                             </div>
                         }
-                        @if (Model.AssignedDriver != null)
+                        @if (!string.IsNullOrEmpty(Model.AssignedDriver))
                         {
                             <div class="col-md-12">
                                 <div class="alert alert-success">
                                     <i class="bi bi-person-badge me-2"></i>
-                                    <strong>Assigned Driver:</strong> @Model.AssignedDriver.FullName
+                                    <strong>Assigned Driver:</strong> @Model.AssignedDriver
                                 </div>
                             </div>
                         }
                     </div>
                 </div>
                 <div class="card-footer bg-white border-0 pb-4">
-                    @if (Model.Status.ToString() == "Pending")
+                    @if (Model.Status == "Pending")
                     {
                         <form asp-action="ConfirmDelivery" asp-route-id="@Model.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
@@ -99,7 +100,7 @@
                             </button>
                         </form>
                     }
-                    @if (Model.Status.ToString() == "Confirmed")
+                    @if (Model.Status == "Confirmed")
                     {
                         <form asp-action="CompleteDelivery" asp-route-id="@Model.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()

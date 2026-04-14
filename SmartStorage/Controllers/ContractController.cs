@@ -56,6 +56,19 @@ namespace SmartStorage.Controllers
 
             var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
 
+            // Get the storage unit to get the actual monthly rate
+            var storageUnit = await _context.StorageUnits.FirstOrDefaultAsync(s => s.UnitNumber == booking.UnitNumber);
+            decimal monthlyRate = storageUnit?.MonthlyRate ?? 500; // Default if not found
+
+            // Calculate correct values
+            int months = ((booking.EndDate.Year - booking.StartDate.Year) * 12) + (booking.EndDate.Month - booking.StartDate.Month);
+            if (months <= 0) months = 1;
+
+            decimal baseTotal = monthlyRate * months;
+            const decimal ADMIN_FEE = 25m;
+            const decimal SECURITY_FEE = 50m;
+            decimal totalWithFees = baseTotal + ADMIN_FEE + SECURITY_FEE;
+
             var contract = new Contract
             {
                 ContractNumber = $"CTR-{DateTime.Now:yyyyMMdd}-{bookingId}",
@@ -63,9 +76,9 @@ namespace SmartStorage.Controllers
                 ClientId = client?.Id ?? 1,
                 StartDate = booking.StartDate,
                 EndDate = booking.EndDate,
-                MonthlyRate = booking.TotalAmount / 3,
-                SecurityDeposit = 50,
-                TotalContractValue = booking.TotalAmount,
+                MonthlyRate = monthlyRate,  // ✅ Fixed: Use actual monthly rate
+                SecurityDeposit = SECURITY_FEE,  // ✅ Fixed: Use R50
+                TotalContractValue = totalWithFees,  // ✅ Fixed: Include fees
                 TermsAndConditions = GetFullTerms(),
                 SpecialConditions = "",
                 Status = ContractStatus.Active,

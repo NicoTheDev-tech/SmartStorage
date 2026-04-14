@@ -1,6 +1,23 @@
 ﻿@{
-    var booking = ViewBag.Booking as SmartStorage.Core.DTOs.BookingResponseDto;
+    var booking = ViewBag.Booking as SmartStorage.Core.Entities.Booking;
+    var invoice = ViewBag.Invoice as SmartStorage.Core.Entities.Invoice;
     ViewData["Title"] = "Secure Payment";
+}
+
+@if (invoice == null)
+{
+    <div class="container py-5">
+        <div class="alert alert-danger">Invoice not found. Please contact support.</div>
+    </div>
+    return;
+}
+
+@if (booking == null)
+{
+    <div class="container py-5">
+        <div class="alert alert-danger">Booking not found. Please contact support.</div>
+    </div>
+    return;
 }
 
 <div class="container py-5">
@@ -30,11 +47,10 @@
                                 </div>
                             }
 
-                            <form asp-action="ProcessPayment" method="post">
+                            <form action="/Invoice/ProcessPayment" method="post">
                                 @Html.AntiForgeryToken()
-                                <input type="hidden" name="bookingId" value="@booking?.Id" />
+                                <input type="hidden" name="bookingId" value="@booking.Id" />
                                 
-                                <!-- Payment Methods -->
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Select Payment Method</label>
                                     <div class="row g-3">
@@ -105,7 +121,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Card Details (Conditional) -->
                                 <div id="cardDetails" style="display: none;">
                                     <div class="card bg-light border-0 p-3 mb-4">
                                         <h6 class="fw-bold mb-3">Card Details</h6>
@@ -127,7 +142,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Mobile Money Details (Conditional) -->
                                 <div id="mobileDetails" style="display: none;">
                                     <div class="card bg-light border-0 p-3 mb-4">
                                         <h6 class="fw-bold mb-3">Mobile Money Details</h6>
@@ -148,7 +162,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Bank Transfer Details (Conditional) -->
                                 <div id="bankDetails" style="display: none;">
                                     <div class="card bg-light border-0 p-3 mb-4">
                                         <h6 class="fw-bold mb-3">Bank Transfer Instructions</h6>
@@ -159,7 +172,7 @@
                                             Account Name: SmartStorage (Pty) Ltd<br>
                                             Account Number: 628 456 789 01<br>
                                             Branch Code: 250 655<br>
-                                            Reference: @booking?.BookingNumber</small>
+                                            Reference: @booking.BookingNumber</small>
                                         </div>
                                         <div class="form-check mt-2">
                                             <input class="form-check-input" type="checkbox" id="confirmTransfer">
@@ -170,7 +183,6 @@
                                     </div>
                                 </div>
 
-                                <!-- PayFast Details (Conditional) -->
                                 <div id="payfastDetails" style="display: none;">
                                     <div class="card bg-light border-0 p-3 mb-4">
                                         <h6 class="fw-bold mb-3">PayFast Payment</h6>
@@ -188,7 +200,7 @@
                                 </div>
 
                                 <button type="submit" class="btn btn-gold w-100 py-3 mt-3" id="payButton">
-                                    <i class="bi bi-lock"></i> Pay R @(booking?.TotalAmount + 75)
+                                    <i class="bi bi-lock"></i> Pay R @invoice.Balance.ToString("N2")
                                 </button>
                             </form>
                         </div>
@@ -204,34 +216,35 @@
                         <div class="card-body p-4">
                             <div class="mb-3 pb-2 border-bottom">
                                 <small class="text-muted">Booking Number</small>
-                                <p class="fw-bold mb-0">@booking?.BookingNumber</p>
+                                <p class="fw-bold mb-0">@booking.BookingNumber</p>
                             </div>
                             <div class="mb-3 pb-2 border-bottom">
                                 <small class="text-muted">Storage Unit</small>
-                                <p class="fw-bold mb-0">Unit @booking?.UnitNumber</p>
+                                <p class="fw-bold mb-0">Unit @booking.StorageUnit?.UnitNumber</p>
+                                <small class="text-muted">@booking.StorageUnit?.Size</small>
                             </div>
                             <div class="mb-3 pb-2 border-bottom">
                                 <small class="text-muted">Duration</small>
-                                <p class="mb-0">@booking?.StartDate.ToString("dd MMM yyyy") - @booking?.EndDate.ToString("dd MMM yyyy")</p>
+                                <p class="mb-0">@booking.StartDate.ToString("dd MMM yyyy") - @booking.EndDate.ToString("dd MMM yyyy")</p>
                             </div>
                             <div class="mb-3 pb-2 border-bottom">
                                 <div class="d-flex justify-content-between">
                                     <span>Storage Fee</span>
-                                    <span>R @booking?.TotalAmount.ToString("N0")</span>
+                                    <span>R @((invoice.Amount - 75).ToString("N2"))</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span>Admin Fee</span>
-                                    <span>R25</span>
+                                    <span>R25.00</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span>Security Deposit</span>
-                                    <span>R50</span>
+                                    <span>R50.00</span>
                                 </div>
                             </div>
                             <div class="pt-2">
                                 <div class="d-flex justify-content-between">
                                     <span class="fw-bold fs-5">Total Due</span>
-                                    <span class="fw-bold text-gold fs-5">R @(booking?.TotalAmount + 75)</span>
+                                    <span class="fw-bold text-gold fs-5">R @invoice.Balance.ToString("N2")</span>
                                 </div>
                                 <small class="text-muted">Includes admin fee and security deposit</small>
                             </div>
@@ -253,14 +266,9 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Payment method selection
             $('input[name="paymentMethod"]').change(function() {
                 var method = $(this).val();
-                
-                // Hide all detail sections
                 $('#cardDetails, #mobileDetails, #bankDetails, #payfastDetails').hide();
-                
-                // Show relevant details
                 if (method === 'CreditCard') {
                     $('#cardDetails').show();
                 } else if (method === 'MobileMoney') {
@@ -272,41 +280,26 @@
                 }
             });
             
-            // Payment option card hover effect
             $('.payment-option').click(function() {
                 $(this).find('input[type="radio"]').prop('checked', true).trigger('change');
                 $('.payment-option .card').removeClass('border-gold');
                 $(this).find('.card').addClass('border-gold');
             });
             
-            // Enable pay button by default - remove any disabling
             $('#payButton').prop('disabled', false);
             
-            // If bank transfer is selected, require checkbox
             $('input[name="paymentMethod"]').change(function() {
                 var method = $(this).val();
                 if (method === 'BankTransfer') {
                     $('#confirmTransfer').change(function() {
-                        if ($(this).is(':checked')) {
-                            $('#payButton').prop('disabled', false);
-                        } else {
-                            $('#payButton').prop('disabled', true);
-                        }
+                        $('#payButton').prop('disabled', !$(this).is(':checked'));
                     });
-                    if (!$('#confirmTransfer').is(':checked')) {
-                        $('#payButton').prop('disabled', true);
-                    }
+                    $('#payButton').prop('disabled', !$('#confirmTransfer').is(':checked'));
                 } else if (method === 'PayFast') {
                     $('#agreePayFast').change(function() {
-                        if ($(this).is(':checked')) {
-                            $('#payButton').prop('disabled', false);
-                        } else {
-                            $('#payButton').prop('disabled', true);
-                        }
+                        $('#payButton').prop('disabled', !$(this).is(':checked'));
                     });
-                    if (!$('#agreePayFast').is(':checked')) {
-                        $('#payButton').prop('disabled', true);
-                    }
+                    $('#payButton').prop('disabled', !$('#agreePayFast').is(':checked'));
                 } else {
                     $('#payButton').prop('disabled', false);
                 }
@@ -314,39 +307,13 @@
         });
     </script>
     <style>
-        .payment-option {
-            cursor: pointer;
-        }
-        .payment-option .card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .payment-option .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .border-gold {
-            border: 2px solid var(--gold) !important;
-            background: rgba(212, 175, 55, 0.05);
-        }
-        .text-gold {
-            color: var(--gold);
-        }
-        .btn-gold {
-            background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
-            color: #2c2c2c;
-            font-weight: 600;
-            border: none;
-        }
-        .btn-gold:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212,175,55,0.3);
-            color: #2c2c2c;
-        }
-        .sticky-top {
-            position: sticky;
-            top: 20px;
-            z-index: 1;
-        }
+        .payment-option { cursor: pointer; }
+        .payment-option .card { transition: all 0.3s ease; cursor: pointer; }
+        .payment-option .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .border-gold { border: 2px solid var(--gold) !important; background: rgba(212, 175, 55, 0.05); }
+        .text-gold { color: var(--gold); }
+        .btn-gold { background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: #2c2c2c; font-weight: 600; border: none; }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,175,55,0.3); color: #2c2c2c; }
+        .sticky-top { position: sticky; top: 20px; z-index: 1; }
     </style>
 }

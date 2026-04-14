@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using SmartStorage.Core.Entities;
+using SmartStorage.Core.Interfaces;
 
 namespace SmartStorage.Controllers
 {
@@ -32,5 +34,8 @@ namespace SmartStorage.Controllers
         {
             return View();
         }
+
+        
+        
     }
 }

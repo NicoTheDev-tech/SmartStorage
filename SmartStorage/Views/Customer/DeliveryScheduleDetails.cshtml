@@ -1,6 +1,7 @@
 ﻿@model SmartStorage.Core.DTOs.DeliveryScheduleResponseDto
 @{
     ViewData["Title"] = "Delivery Schedule Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-5">
@@ -103,7 +104,7 @@
                     }
                     @if (Model.CanSchedule && Model.Status != "Completed")
                     {
-                        <button type="button" class="btn btn-outline-danger ms-2" onclick="cancelSchedule(@Model.Id)">
+                        <button type="button" class="btn btn-outline-danger ms-2" onclick="showCancelModal(@Model.Id)">
                             <i class="bi bi-x-circle"></i> Cancel
                         </button>
                     }
@@ -113,19 +114,38 @@
     </div>
 </div>
 
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Delivery
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-calendar-x fs-1 text-danger mb-3 d-block"></i>
+                <h5 class="mb-2">Are you sure?</h5>
+                <p class="text-muted mb-0">Do you really want to cancel this delivery schedule?</p>
+                <p class="text-muted small mt-2">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> No, Keep It
+                </button>
+                <button type="button" class="btn btn-danger px-4" id="confirmCancelBtn">
+                    <i class="bi bi-check-circle"></i> Yes, Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form id="cancelForm" asp-action="CancelDeliverySchedule" method="post" style="display:none;">
     @Html.AntiForgeryToken()
     <input type="hidden" id="cancelScheduleId" name="id" />
 </form>
-
-<script>
-    function cancelSchedule(id) {
-        if (confirm('Are you sure you want to cancel this delivery schedule?')) {
-            document.getElementById('cancelScheduleId').value = id;
-            document.getElementById('cancelForm').submit();
-        }
-    }
-</script>
 
 <style>
     .text-gold {
@@ -152,3 +172,15 @@
         padding: 8px 20px;
     }
 </style>
+
+<script>
+    function showCancelModal(id) {
+        document.getElementById('cancelScheduleId').value = id;
+        var modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+        modal.show();
+    }
+
+    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+        document.getElementById('cancelForm').submit();
+    });
+</script>

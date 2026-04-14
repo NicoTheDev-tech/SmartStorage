@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿#nullable disable
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SmartStorage.Core.Interfaces;
 using SmartStorage.Core.DTOs;
+using SmartStorage.Core.Entities;
 using SmartStorage.Infrastructure.Data;
 using SmartStorage.ViewModels;
 using System.Security.Claims;
@@ -17,12 +20,18 @@ namespace SmartStorage.Controllers
         private readonly IBookingService _bookingService;
         private readonly ApplicationDbContext _context;
         private readonly IDeliveryScheduleService _deliveryService;
+        private readonly ILogger<ReserveController> _logger;
 
-        public ReserveController(IBookingService bookingService, ApplicationDbContext context, IDeliveryScheduleService deliveryService)
+        public ReserveController(
+            IBookingService bookingService,
+            ApplicationDbContext context,
+            IDeliveryScheduleService deliveryService,
+            ILogger<ReserveController> logger)
         {
             _bookingService = bookingService;
             _context = context;
             _deliveryService = deliveryService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -42,7 +51,7 @@ namespace SmartStorage.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(userId))
             {
-                var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+                var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId != null && c.UserId == userId);
                 if (client != null)
                 {
                     viewModel.PickupAddress = client.Address ?? string.Empty;
@@ -139,7 +148,47 @@ namespace SmartStorage.Controllers
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var booking = await _bookingService.CreateBooking(bookingDto, userId ?? string.Empty);
-                return Json(new { success = true, booking });
+
+                bool emailSent = false;
+
+                try
+                {
+                    var emailService = HttpContext.RequestServices.GetRequiredService<IEmailService>();
+                    var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId != null && c.UserId == userId);
+
+                    if (client != null && !string.IsNullOrEmpty(client.Email))
+                    {
+                        var bookingForEmail = new Booking
+                        {
+                            Id = booking.Id,
+                            BookingNumber = booking.BookingNumber,
+                            StartDate = booking.StartDate,
+                            EndDate = booking.EndDate,
+                            TotalAmount = booking.TotalAmount,
+                            Status = BookingStatus.Pending
+                        };
+
+                        await emailService.SendBookingConfirmationAsync(
+                            bookingForEmail,
+                            client.Email,
+                            client.FullName
+                        );
+                        emailSent = true;
+                        _logger.LogInformation($"Booking confirmation email sent to {client.Email} for booking {booking.BookingNumber}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send booking confirmation email");
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    booking,
+                    emailSent = emailSent,
+                    message = emailSent ? "✓ Booking confirmed! A confirmation email has been sent to your inbox." : "✓ Booking confirmed! (Email notification could not be sent, but your booking is saved.)"
+                });
             }
             catch (Exception ex)
             {
@@ -167,10 +216,6 @@ namespace SmartStorage.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
-
-        public IActionResult Test()
-        {
-            return Content("ReserveController is working!");
-        }
     }
 }
+#nullable restore

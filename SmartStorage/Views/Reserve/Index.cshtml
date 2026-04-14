@@ -627,10 +627,10 @@
             $('#step5Back').click(() => moveToStep(4));
             $('#step5Next').click(() => moveToStep(6));
             $('#step6Back').click(() => moveToStep(5));
-            $('#needCartage').change(() => $('#cartageDetails').toggle(this.checked));
+            $('#needCartage').change(function() { $('#cartageDetails').toggle(this.checked); });
             $('#step6Next').click(() => moveToStep(7));
             $('#step7Back').click(() => moveToStep(6));
-            $('#needVehicleService').change(() => $('#vehicleServiceDetails').toggle(this.checked));
+            $('#needVehicleService').change(function() { $('#vehicleServiceDetails').toggle(this.checked); });
             $('#step7Next').click(() => moveToStep(8));
             $('#step8Back').click(() => moveToStep(7));
             $('#step8Next').click(() => { updateReview(); moveToStep(9); });
@@ -661,7 +661,7 @@
             updateStepDisplay();
         }
 
-                function loadAvailableUnits() {
+        function loadAvailableUnits() {
             let size = $('#sizeFilter').val();
             let location = $('#locationFilter').val();
             let minPrice = $('#minPrice').val() || 0;
@@ -691,7 +691,7 @@
                     units.forEach(unit => {
                         html += `
                             <div class="col-md-6 col-lg-4">
-                                <div class="card unit-card h-100" data-unit-id="${unit.id}" data-unit-price="${unit.price}" data-unit-number="${unit.unitNumber}">
+                                <div class="card unit-card h-100" data-unit-id="${unit.id}" data-unit-price="${unit.price}" data-unit-number="${unit.unitNumber}" data-unit-size="${unit.size}">
                                     <div class="card-body">
                                         <h5 class="fw-bold">Unit ${unit.unitNumber}</h5>
                                         <p><strong>Size:</strong> ${unit.size}<br>
@@ -712,6 +712,7 @@
                         selectedUnit = $(this).data('unit-id');
                         selectedUnitPrice = $(this).data('unit-price');
                         selectedUnitNumber = $(this).data('unit-number');
+                        selectedUnitSize = $(this).data('unit-size');
                         $('#step3Next').prop('disabled', false);
                         updateSummary();
                     });
@@ -721,11 +722,6 @@
                     $('#unitsContainer').html('<div class="col-12 text-center"><p class="text-danger">Error loading units. Please try again.</p></div>');
                 }
             });
-        }
-       
-
-        function getAvailableSizes(storageType) {
-            return ['Small', 'Medium', 'Large', 'ExtraLarge'];
         }
 
         function getSizeDescription(storageType, sizeCategory) {
@@ -793,196 +789,198 @@
             moveToStep(5);
         }
 
-       function updateSummary() {
-    let hasUnit = (selectedUnit !== null && selectedUnitNumber !== '');
-    let hasDates = ($('#startDate').val() && $('#endDate').val());
-    
-    if (!hasUnit) {
-        $('#summaryContent').html(`
-            <div class="text-center py-4 text-muted">
-                <i class="bi bi-info-circle fs-2"></i>
-                <p class="mt-2 mb-0">Select a storage unit to begin</p>
-            </div>
-        `);
-        return;
-    }
-    
-    if (!hasDates) {
-        $('#summaryContent').html(`
-            <div class="mb-3 pb-2 border-bottom">
-                <small class="text-muted">Storage Unit</small>
-                <p class="fw-bold mb-0">${selectedUnitNumber}</p>
-                <small>${selectedUnitSize || ''}</small>
-            </div>
-            <div class="text-center py-3 text-muted">
-                <i class="bi bi-calendar fs-2"></i>
-                <p class="mt-2 mb-0">Select dates to see pricing</p>
-            </div>
-        `);
-        return;
-    }
-    
-    let months = getDurationMonths();
-    let discountedRate = selectedUnitPrice * (1 - discountPercentage / 100);
-    let subtotal = discountedRate * months;
-    let totalDue = subtotal + 25 + 50;
-    
-    // Get add-ons for summary
-    let movingSuppliesCost = $('#movingSupplies').is(':checked') ? 32 : 0;
-    let truckRentalCost = $('#truckRental').is(':checked') ? 30 : 0;
-    let movingLaborCost = $('#movingLabor').is(':checked') ? 100 : 0;
-    let cartageCost = $('#needCartage').is(':checked') ? parseInt($('#cartageType').val()) : 0;
-    let vehicleServiceCost = $('#needVehicleService').is(':checked') ? parseInt($('#serviceType').val()) : 0;
-    
-    let addOnsTotal = movingSuppliesCost + truckRentalCost + movingLaborCost + cartageCost + vehicleServiceCost;
-    let grandTotal = totalDue + addOnsTotal;
-    
-    let addOnsHtml = '';
-    if (movingSuppliesCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Moving Supplies:</span><span>+R${movingSuppliesCost}</span></div>`;
-    if (truckRentalCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Truck Rental:</span><span>+R${truckRentalCost}</span></div>`;
-    if (movingLaborCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Moving Labor:</span><span>+R${movingLaborCost}</span></div>`;
-    if (cartageCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Cartage Service:</span><span>+R${cartageCost}</span></div>`;
-    if (vehicleServiceCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Vehicle Service:</span><span>+R${vehicleServiceCost}</span></div>`;
-    
-    let html = `
-        <div class="mb-3 pb-2 border-bottom">
-            <small class="text-muted">Storage Unit</small>
-            <p class="fw-bold mb-0">${selectedUnitNumber}</p>
-            <small>${selectedUnitSize || ''}</small>
-        </div>
-        <div class="mb-3 pb-2 border-bottom">
-            <small class="text-muted">Duration</small>
-            <p class="mb-0">${$('#startDate').val()} - ${$('#endDate').val()}</p>
-            <small>${months} month(s)</small>
-            ${discountPercentage > 0 ? `<small class="text-success d-block">✓ ${discountPercentage}% discount applied</small>` : ''}
-        </div>
-        <div class="mb-3 pb-2 border-bottom">
-            <small class="text-muted">Monthly Breakdown</small>
-            <div class="d-flex justify-content-between">
-                <span>Base Rate:</span>
-                <span>R${selectedUnitPrice.toLocaleString()}</span>
-            </div>
-            ${discountPercentage > 0 ? `<div class="d-flex justify-content-between text-success">
-                <span>Discount (${discountPercentage}%):</span>
-                <span>-R${Math.round(selectedUnitPrice * discountPercentage / 100).toLocaleString()}</span>
-            </div>` : ''}
-            <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
-                <span>Total Monthly:</span>
-                <span>R${Math.round(discountedRate).toLocaleString()}</span>
-            </div>
-        </div>
-        <div class="mb-3 pb-2 border-bottom">
-            <small class="text-muted">One-Time Fees</small>
-            <div class="d-flex justify-content-between">
-                <span>Admin Fee:</span>
-                <span>R25</span>
-            </div>
-            <div class="d-flex justify-content-between">
-                <span>Security Deposit:</span>
-                <span>R50</span>
-            </div>
-            ${addOnsHtml}
-        </div>
-        <div class="pt-2">
-            <div class="d-flex justify-content-between">
-                <span class="fw-bold">Subtotal (${months} months):</span>
-                <span class="fw-bold">R${Math.round(subtotal).toLocaleString()}</span>
-            </div>
-            <div class="d-flex justify-content-between mt-2">
-                <span class="fw-bold fs-5 text-gold">Total Due Today:</span>
-                <span class="fw-bold fs-5 text-gold">R${Math.round(grandTotal).toLocaleString()}</span>
-            </div>
-            <small class="text-muted d-block mt-2">Includes first month + admin fee + deposit + add-ons</small>
-        </div>
-    `;
-    $('#summaryContent').html(html);
-}
+        function updateSummary() {
+            let hasUnit = (selectedUnit !== null && selectedUnitNumber !== '');
+            let hasDates = ($('#startDate').val() && $('#endDate').val());
+            
+            if (!hasUnit) {
+                $('#summaryContent').html(`
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-info-circle fs-2"></i>
+                        <p class="mt-2 mb-0">Select a storage unit to begin</p>
+                    </div>
+                `);
+                return;
+            }
+            
+            if (!hasDates) {
+                $('#summaryContent').html(`
+                    <div class="mb-3 pb-2 border-bottom">
+                        <small class="text-muted">Storage Unit</small>
+                        <p class="fw-bold mb-0">${selectedUnitNumber}</p>
+                        <small>${selectedUnitSize || ''}</small>
+                    </div>
+                    <div class="text-center py-3 text-muted">
+                        <i class="bi bi-calendar fs-2"></i>
+                        <p class="mt-2 mb-0">Select dates to see pricing</p>
+                    </div>
+                `);
+                return;
+            }
+            
+            let months = getDurationMonths();
+            let discountedRate = selectedUnitPrice * (1 - discountPercentage / 100);
+            let subtotal = discountedRate * months;
+            let totalDue = subtotal + 25 + 50;
+            
+            let movingSuppliesCost = $('#movingSupplies').is(':checked') ? 32 : 0;
+            let truckRentalCost = $('#truckRental').is(':checked') ? 30 : 0;
+            let movingLaborCost = $('#movingLabor').is(':checked') ? 100 : 0;
+            let cartageCost = $('#needCartage').is(':checked') ? parseInt($('#cartageType').val()) : 0;
+            let vehicleServiceCost = $('#needVehicleService').is(':checked') ? parseInt($('#serviceType').val()) : 0;
+            
+            let addOnsTotal = movingSuppliesCost + truckRentalCost + movingLaborCost + cartageCost + vehicleServiceCost;
+            let grandTotal = totalDue + addOnsTotal;
+            
+            let addOnsHtml = '';
+            if (movingSuppliesCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Moving Supplies:</span><span>+R${movingSuppliesCost}</span></div>`;
+            if (truckRentalCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Truck Rental:</span><span>+R${truckRentalCost}</span></div>`;
+            if (movingLaborCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Moving Labor:</span><span>+R${movingLaborCost}</span></div>`;
+            if (cartageCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Cartage Service:</span><span>+R${cartageCost}</span></div>`;
+            if (vehicleServiceCost > 0) addOnsHtml += `<div class="d-flex justify-content-between"><span>Vehicle Service:</span><span>+R${vehicleServiceCost}</span></div>`;
+            
+            let html = `
+                <div class="mb-3 pb-2 border-bottom">
+                    <small class="text-muted">Storage Unit</small>
+                    <p class="fw-bold mb-0">${selectedUnitNumber}</p>
+                    <small>${selectedUnitSize || ''}</small>
+                </div>
+                <div class="mb-3 pb-2 border-bottom">
+                    <small class="text-muted">Duration</small>
+                    <p class="mb-0">${$('#startDate').val()} - ${$('#endDate').val()}</p>
+                    <small>${months} month(s)</small>
+                    ${discountPercentage > 0 ? `<small class="text-success d-block">✓ ${discountPercentage}% discount applied</small>` : ''}
+                </div>
+                <div class="mb-3 pb-2 border-bottom">
+                    <small class="text-muted">Monthly Breakdown</small>
+                    <div class="d-flex justify-content-between">
+                        <span>Base Rate:</span>
+                        <span>R${selectedUnitPrice.toLocaleString()}</span>
+                    </div>
+                    ${discountPercentage > 0 ? `<div class="d-flex justify-content-between text-success">
+                        <span>Discount (${discountPercentage}%):</span>
+                        <span>-R${Math.round(selectedUnitPrice * discountPercentage / 100).toLocaleString()}</span>
+                    </div>` : ''}
+                    <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
+                        <span>Total Monthly:</span>
+                        <span>R${Math.round(discountedRate).toLocaleString()}</span>
+                    </div>
+                </div>
+                <div class="mb-3 pb-2 border-bottom">
+                    <small class="text-muted">One-Time Fees</small>
+                    <div class="d-flex justify-content-between">
+                        <span>Admin Fee:</span>
+                        <span>R25</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Security Deposit:</span>
+                        <span>R50</span>
+                    </div>
+                    ${addOnsHtml}
+                </div>
+                <div class="pt-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">Subtotal (${months} months):</span>
+                        <span class="fw-bold">R${Math.round(subtotal).toLocaleString()}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span class="fw-bold fs-5 text-gold">Total Amount:</span>
+                        <span class="fw-bold fs-5 text-gold">R${Math.round(grandTotal).toLocaleString()}</span>
+                    </div>
+                    <small class="text-muted d-block mt-2">Includes first month + admin fee + deposit + add-ons</small>
+                </div>
+            `;
+            $('#summaryContent').html(html);
+        }
 
         function updateReview() {
-    let months = getDurationMonths();
-    let discountedRate = selectedUnitPrice * (1 - discountPercentage / 100);
-    
-    let insuranceCost = $('#insurance').is(':checked') ? 15 : 0;
-    let movingSuppliesCost = $('#movingSupplies').is(':checked') ? 32 : 0;
-    let truckRentalCost = $('#truckRental').is(':checked') ? 30 : 0;
-    let movingLaborCost = $('#movingLabor').is(':checked') ? 100 : 0;
-    let cartageCost = $('#needCartage').is(':checked') ? parseInt($('#cartageType').val()) : 0;
-    let vehicleServiceCost = $('#needVehicleService').is(':checked') ? parseInt($('#serviceType').val()) : 0;
-    
-    let autopayDiscount = $('#autopay').is(':checked') ? 0.05 : 0;
-    let finalMonthlyRate = discountedRate * (1 - autopayDiscount);
-    let totalMonthly = finalMonthlyRate + insuranceCost;
-    let subtotal = totalMonthly * months;
-    let totalDue = subtotal + 25 + 50 + movingSuppliesCost + truckRentalCost + movingLaborCost + cartageCost + vehicleServiceCost;
-    
-    let startDate = $('#startDate').val();
-    let endDate = $('#endDate').val();
-    
-    // Build services and add-ons list
-    let servicesHtml = '';
-    if ($('#needCartage').is(':checked')) servicesHtml += `<div>✓ Cartage Service: R${cartageCost}</div>`;
-    if ($('#needVehicleService').is(':checked')) servicesHtml += `<div>✓ Vehicle Service: R${vehicleServiceCost}</div>`;
-    if ($('#movingSupplies').is(':checked')) servicesHtml += `<div>✓ Moving Supplies: R${movingSuppliesCost}</div>`;
-    if ($('#truckRental').is(':checked')) servicesHtml += `<div>✓ Truck Rental: R${truckRentalCost}</div>`;
-    if ($('#movingLabor').is(':checked')) servicesHtml += `<div>✓ Moving Labor: R${movingLaborCost}</div>`;
-    
-    if (servicesHtml === '') servicesHtml = '<div>✗ No additional services selected</div>';
-    
-    let html = `
-        <div class="border rounded p-3 mb-3 bg-light">
-            <h6>📦 Storage Details</h6>
-            <p><strong>Type:</strong> ${getStorageTypeName(selectedType)}<br>
-            <strong>Unit:</strong> ${selectedUnitNumber}<br>
-            <strong>Size:</strong> ${selectedUnitSize || 'Medium'}<br>
-            <strong>Size Description:</strong> ${getSizeDescription(selectedType, selectedUnitSizeCategory || 'Medium')}<br>
-            <strong>Features:</strong> ${getFeatureDescription(selectedType)}</p>
-        </div>
-        <div class="border rounded p-3 mb-3 bg-light">
-            <h6>📅 Duration & Pricing</h6>
-            <p><strong>Start:</strong> ${startDate}<br>
-            <strong>End:</strong> ${endDate}<br>
-            <strong>Duration:</strong> ${months} month(s)<br>
-            <strong>Base Monthly:</strong> R${selectedUnitPrice.toLocaleString()}<br>
-            ${discountPercentage > 0 ? `<strong class="text-success">Long-term Discount:</strong> ${discountPercentage}% (-R${Math.round(selectedUnitPrice * discountPercentage / 100).toLocaleString()})<br>` : ''}
-            ${$('#autopay').is(':checked') ? `<strong class="text-success">Autopay Discount:</strong> 5%<br>` : ''}
-            <strong class="text-gold">Final Monthly:</strong> R${Math.round(finalMonthlyRate).toLocaleString()}<br>
-            <strong>Insurance:</strong> ${insuranceCost > 0 ? `R${insuranceCost}/month` : 'Not selected'}<br>
-            <hr>
-            <strong>Total for ${months} months:</strong> R${Math.round(subtotal).toLocaleString()}</p>
-        </div>
-        <div class="border rounded p-3 mb-3 bg-light">
-            <h6>🚚 Services & Add-Ons</h6>
-            ${servicesHtml}
-        </div>
-        <div class="border rounded p-3 mb-3 bg-light">
-            <h6>📦 Goods Details</h6>
-            <p><strong>Type:</strong> ${$('#goodsType option:selected').text() || 'Not specified'}<br>
-            <strong>Items:</strong> ${$('#itemCount').val()}<br>
-            <strong>Instructions:</strong> ${$('#specialInstructions').val() || 'None'}</p>
-        </div>
-        <div class="border rounded p-3 bg-gold-light">
-            <div class="d-flex justify-content-between">
-                <span class="fw-bold">Subtotal (${months} months):</span>
-                <span class="fw-bold">R${Math.round(subtotal).toLocaleString()}</span>
-            </div>
-            <div class="d-flex justify-content-between mt-2">
-                <span class="fw-bold fs-4">Total Due Today:</span>
-                <span class="fw-bold text-gold fs-4">R${Math.round(totalDue).toLocaleString()}</span>
-            </div>
-            <small class="text-muted d-block mt-2">Includes admin fee (R25) + security deposit (R50) + all add-ons</small>
-        </div>
-    `;
-    $('#reviewContent').html(html);
-}
+            let months = getDurationMonths();
+            let discountedRate = selectedUnitPrice * (1 - discountPercentage / 100);
+            
+            let insuranceCost = $('#insurance').is(':checked') ? 15 : 0;
+            let movingSuppliesCost = $('#movingSupplies').is(':checked') ? 32 : 0;
+            let truckRentalCost = $('#truckRental').is(':checked') ? 30 : 0;
+            let movingLaborCost = $('#movingLabor').is(':checked') ? 100 : 0;
+            let cartageCost = $('#needCartage').is(':checked') ? parseInt($('#cartageType').val()) : 0;
+            let vehicleServiceCost = $('#needVehicleService').is(':checked') ? parseInt($('#serviceType').val()) : 0;
+            
+            let autopayDiscount = $('#autopay').is(':checked') ? 0.05 : 0;
+            let finalMonthlyRate = discountedRate * (1 - autopayDiscount);
+            let totalMonthly = finalMonthlyRate + insuranceCost;
+            let subtotal = totalMonthly * months;
+            let totalDue = subtotal + 25 + 50 + movingSuppliesCost + truckRentalCost + movingLaborCost + cartageCost + vehicleServiceCost;
+            
+            let startDate = $('#startDate').val();
+            let endDate = $('#endDate').val();
+            
+            let servicesHtml = '';
+            if ($('#needCartage').is(':checked')) servicesHtml += `<div>✓ Cartage Service: R${cartageCost}</div>`;
+            if ($('#needVehicleService').is(':checked')) servicesHtml += `<div>✓ Vehicle Service: R${vehicleServiceCost}</div>`;
+            if ($('#movingSupplies').is(':checked')) servicesHtml += `<div>✓ Moving Supplies: R${movingSuppliesCost}</div>`;
+            if ($('#truckRental').is(':checked')) servicesHtml += `<div>✓ Truck Rental: R${truckRentalCost}</div>`;
+            if ($('#movingLabor').is(':checked')) servicesHtml += `<div>✓ Moving Labor: R${movingLaborCost}</div>`;
+            
+            if (servicesHtml === '') servicesHtml = '<div>✗ No additional services selected</div>';
+            
+            let html = `
+                <div class="border rounded p-3 mb-3 bg-light">
+                    <h6>📦 Storage Details</h6>
+                    <p><strong>Type:</strong> ${getStorageTypeName(selectedType)}<br>
+                    <strong>Unit:</strong> ${selectedUnitNumber}<br>
+                    <strong>Size:</strong> ${selectedUnitSize || 'Medium'}<br>
+                    <strong>Size Description:</strong> ${getSizeDescription(selectedType, selectedUnitSizeCategory || 'Medium')}<br>
+                    <strong>Features:</strong> ${getFeatureDescription(selectedType)}</p>
+                </div>
+                <div class="border rounded p-3 mb-3 bg-light">
+                    <h6>📅 Duration & Pricing</h6>
+                    <p><strong>Start:</strong> ${startDate}<br>
+                    <strong>End:</strong> ${endDate}<br>
+                    <strong>Duration:</strong> ${months} month(s)<br>
+                    <strong>Base Monthly:</strong> R${selectedUnitPrice.toLocaleString()}<br>
+                    ${discountPercentage > 0 ? `<strong class="text-success">Long-term Discount:</strong> ${discountPercentage}% (-R${Math.round(selectedUnitPrice * discountPercentage / 100).toLocaleString()})<br>` : ''}
+                    ${$('#autopay').is(':checked') ? `<strong class="text-success">Autopay Discount:</strong> 5%<br>` : ''}
+                    <strong class="text-gold">Final Monthly:</strong> R${Math.round(finalMonthlyRate).toLocaleString()}<br>
+                    <strong>Insurance:</strong> ${insuranceCost > 0 ? `R${insuranceCost}/month` : 'Not selected'}<br>
+                    <hr>
+                    <strong>Total for ${months} months:</strong> R${Math.round(subtotal).toLocaleString()}</p>
+                </div>
+                <div class="border rounded p-3 mb-3 bg-light">
+                    <h6>🚚 Services & Add-Ons</h6>
+                    ${servicesHtml}
+                </div>
+                <div class="border rounded p-3 mb-3 bg-light">
+                    <h6>📦 Goods Details</h6>
+                    <p><strong>Type:</strong> ${$('#goodsType option:selected').text() || 'Not specified'}<br>
+                    <strong>Items:</strong> ${$('#itemCount').val()}<br>
+                    <strong>Instructions:</strong> ${$('#specialInstructions').val() || 'None'}</p>
+                </div>
+                <div class="border rounded p-3 bg-gold-light">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">Subtotal (${months} months):</span>
+                        <span class="fw-bold">R${Math.round(subtotal).toLocaleString()}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span class="fw-bold fs-4">Total Amount:</span>
+                        <span class="fw-bold text-gold fs-4">R${Math.round(totalDue).toLocaleString()}</span>
+                    </div>
+                    <small class="text-muted d-block mt-2">Includes admin fee (R25) + security deposit (R50) + all add-ons</small>
+                </div>
+            `;
+            $('#reviewContent').html(html);
+        }
 
         function createBooking() {
+            // Prevent double submission
+            if ($('#confirmBookingBtn').data('submitting')) return;
+            $('#confirmBookingBtn').data('submitting', true).text('Processing...').prop('disabled', true);
+            
             let bookingData = {
                 storageUnitId: selectedUnit,
                 startDate: $('#startDate').val(),
                 endDate: $('#endDate').val(),
                 clientInfo: {
-                    fullName: '@User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value',
-                    email: '@User.Identity?.Name',
+                    fullName: '',
+                    email: '',
                     phone: '',
                     idNumber: '',
                     address: $('#pickupAddress').val() || ''
@@ -999,10 +997,12 @@
                         window.location.href = '/Reserve/Success/' + response.booking.id;
                     } else {
                         alert('Error: ' + response.error);
+                        $('#confirmBookingBtn').data('submitting', false).text('Confirm & Create Booking').prop('disabled', false);
                     }
                 },
-                error: function() {
+                error: function(xhr) {
                     alert('Error creating booking');
+                    $('#confirmBookingBtn').data('submitting', false).text('Confirm & Create Booking').prop('disabled', false);
                 }
             });
         }
