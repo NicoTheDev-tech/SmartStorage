@@ -1,0 +1,81 @@
+﻿@{
+    ViewData["Title"] = "Complete Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <i class="bi bi-person-badge fs-1 text-white"></i>
+                    <h3 class="text-white mb-0 mt-2">Complete Your Profile</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CompleteProfile" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="fullName" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" name="phone" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Assigned Zone</label>
+                            <select name="assignedZone" class="form-select" required>
+                                <option value="Zone A">Zone A</option>
+                                <option value="Zone B">Zone B</option>
+                                <option value="Zone C">Zone C</option>
+                                <option value="Zone D">Zone D</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-gold w-100">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        $('.driver-select').change(function() {
+            var scheduleId = $(this).data('schedule-id');
+            var driverId = $(this).val();
+            
+            if (driverId) {
+                $.ajax({
+                    url: '/Warehouse/AssignDriver',
+                    type: 'POST',
+                    data: {
+                        scheduleId: scheduleId,
+                        driverId: driverId
+                    },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            location.reload();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error assigning driver');
+                    }
+                });
+            }
+        });
+    });
+</script>

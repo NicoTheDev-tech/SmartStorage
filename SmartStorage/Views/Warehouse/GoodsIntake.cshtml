@@ -1,0 +1,171 @@
+﻿@using SmartStorage.Core.Entities
+@model IEnumerable<SmartStorage.Core.Entities.DeliverySchedule>
+
+@{
+    ViewData["Title"] = "Goods Intake";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Goods Intake</h1>
+            <p class="text-muted">Process incoming customer goods and assign drivers</p>
+        </div>
+        <a href="/Warehouse/Dashboard" class="btn btn-outline-gold">Back to Dashboard</a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+            <h5 class="mb-0"><i class="bi bi-box-seam text-gold"></i> Pending Intake & Driver Assignment</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Schedule #</th>
+                            <th>Client</th>
+                            <th>Unit</th>
+                            <th>Date</th>
+                            <th>Assign Driver</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var schedule in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@schedule.ScheduleNumber</td>
+                                    <td>@schedule.Booking?.Client?.FullName</td>
+                                    <td>@schedule.Booking?.StorageUnit?.UnitNumber</td>
+                                    <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <select class="form-select form-select-sm driver-select" data-schedule-id="@schedule.Id" style="width: 180px;">
+                                            <option value="">-- Select Driver --</option>
+                                            @if (ViewBag.AvailableDrivers != null)
+                                            {
+                                                foreach (var driver in ViewBag.AvailableDrivers)
+                                                {
+                                                    if (schedule.AssignedDriverId == driver.Id)
+                                                    {
+                                                        <option value="@driver.Id" selected>@driver.FullName - @driver.VehicleAssigned</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@driver.Id">@driver.FullName - @driver.VehicleAssigned</option>
+                                                    }
+                                                }
+                                            }
+                                        </select>
+                                        @if (schedule.AssignedDriverId != null)
+                                        {
+                                            <small class="text-success d-block">✓ Driver assigned</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (schedule.Status == ScheduleStatus.Pending)
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
+                                        }
+                                        else if (schedule.Status == ScheduleStatus.InProgress)
+                                        {
+                                            <span class="badge bg-info">In Progress</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Completed</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (schedule.Status == ScheduleStatus.Pending)
+                                        {
+                                            <form asp-action="ReceiveGoods" asp-route-id="@schedule.Id" method="post" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-primary">Receive</button>
+                                            </form>
+                                        }
+                                        @if (schedule.Status == ScheduleStatus.InProgress)
+                                        {
+                                            <form asp-action="StoreGoods" asp-route-id="@schedule.Id" method="post" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-success">Store</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No pending intake requests</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        border-color: transparent;
+    }
+    .text-gold {
+        color: #D4AF37;
+    }
+    .driver-select {
+        cursor: pointer;
+    }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.driver-select').change(function() {
+            var scheduleId = $(this).data('schedule-id');
+            var driverId = $(this).val();
+            
+            if (driverId) {
+                $.ajax({
+                    url: '/Warehouse/AssignDriver',
+                    type: 'POST',
+                    data: {
+                        scheduleId: scheduleId,
+                        driverId: driverId
+                    },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error assigning driver');
+                    }
+                });
+            }
+        });
+    });
+</script>

@@ -35,11 +35,8 @@ namespace SmartStorage.ViewModels
         [Phone(ErrorMessage = "Invalid phone number")]
         public string Phone { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "ID/Passport number is required")]
-        [Display(Name = "ID/Passport Number")]
-        public string IdNumber { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Address is required")]
+        // Address field - removed ID Number requirement
+        [Display(Name = "Address")]
         public string Address { get; set; } = string.Empty;
 
         // Calculated fields

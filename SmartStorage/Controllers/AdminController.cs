@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartStorage.Infrastructure.Data;
 using SmartStorage.Core.Entities;
+using System.Security.Claims;
 using SmartStorage.Core.DTOs;
 using System;
 using System.Linq;
@@ -12,7 +13,7 @@ using System.Collections.Generic;
 
 namespace SmartStorage.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,OperationsManager")]
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -181,32 +182,6 @@ namespace SmartStorage.Controllers
         {
             var units = await _context.StorageUnits.ToListAsync();
             return View(units);
-        }
-
-        [HttpGet("Admin/Delivery")]
-        public async Task<IActionResult> Delivery()
-        {
-            var schedules = await _context.DeliverySchedules
-                .Include(d => d.Booking)
-                    .ThenInclude(b => b.Client)
-                .Include(d => d.Booking)
-                    .ThenInclude(b => b.StorageUnit)
-                .OrderByDescending(d => d.ScheduledDate)
-                .Select(d => new DeliveryScheduleResponseDto
-                {
-                    Id = d.Id,
-                    ScheduleNumber = d.ScheduleNumber ?? string.Empty,
-                    ClientName = d.Booking != null && d.Booking.Client != null ? d.Booking.Client.FullName : "Unknown",
-                    UnitNumber = d.Booking != null && d.Booking.StorageUnit != null ? d.Booking.StorageUnit.UnitNumber : "Unknown",
-                    DeliveryType = d.DeliveryType.ToString(),
-                    ScheduledDate = d.ScheduledDate,
-                    TimeSlot = d.TimeSlot ?? string.Empty,
-                    ItemCount = d.ItemCount,
-                    Status = d.Status.ToString()
-                })
-                .ToListAsync();
-
-            return View(schedules);
         }
 
         [HttpGet("Admin/Delivery/Details/{id}")]
@@ -485,6 +460,605 @@ namespace SmartStorage.Controllers
             }
 
             return RedirectToAction("Users");
+        }
+
+        [HttpGet("PendingExtensions")]
+        [HttpGet("Admin/PendingExtensions")]
+        public async Task<IActionResult> PendingExtensions()
+        {
+            var pendingExtensions = await _context.ContractExtensions
+                .Include(e => e.Contract)
+                    .ThenInclude(c => c.Client)
+                .Include(e => e.Contract)
+                    .ThenInclude(c => c.Booking)
+                        .ThenInclude(b => b.StorageUnit)
+                .Where(e => e.Status == "Pending")
+                .OrderBy(e => e.RequestedDate)
+                .ToListAsync();
+
+            return View(pendingExtensions);
+        }
+
+        [HttpPost("ApproveExtension/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveExtension(int id, string? adminNotes)
+        {
+            var extension = await _context.ContractExtensions
+                .Include(e => e.Contract)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (extension == null)
+            {
+                return NotFound();
+            }
+
+            extension.Status = "Approved";
+            extension.AdminNotes = adminNotes;
+            extension.ApprovedDate = DateTime.Now;
+            extension.ApprovedBy = User.Identity?.Name;
+
+            if (extension.Contract != null)
+            {
+                extension.Contract.EndDate = extension.ProposedNewEndDate;
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Extension approved successfully!";
+            return RedirectToAction("PendingExtensions");
+        }
+
+        [HttpPost("RejectExtension/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectExtension(int id, string adminNotes)
+        {
+            var extension = await _context.ContractExtensions.FindAsync(id);
+
+            if (extension == null)
+            {
+                return NotFound();
+            }
+
+            extension.Status = "Rejected";
+            extension.AdminNotes = adminNotes;
+            extension.ApprovedDate = DateTime.Now;
+            extension.ApprovedBy = User.Identity?.Name;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Extension rejected.";
+            return RedirectToAction("PendingExtensions");
+        }
+
+        [HttpGet("Admin/GetDrivers")]
+        public async Task<IActionResult> GetDrivers()
+        {
+            var drivers = await _context.Drivers
+                .Where(d => d.Status == StaffStatus.Active)
+                .Select(d => new { d.Id, d.FullName, d.VehicleAssigned, d.Phone })
+                .ToListAsync();
+
+            return Json(drivers);
+        }
+
+        [HttpPost("Admin/AssignDriverToDelivery")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignDriverToDelivery(int deliveryId, int driverId)
+        {
+            var delivery = await _context.DeliverySchedules.FindAsync(deliveryId);
+            var driver = await _context.Drivers.FindAsync(driverId);
+
+            if (delivery == null || driver == null)
+            {
+                return Json(new { success = false, message = "Delivery or driver not found" });
+            }
+
+            delivery.AssignedDriverId = driverId;
+            delivery.Status = ScheduleStatus.Confirmed;
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = $"Driver {driver.FullName} assigned to delivery {delivery.ScheduleNumber}" });
+        }
+
+        [HttpGet("Admin/Delivery")]
+        public async Task<IActionResult> Delivery()
+        {
+            var schedules = await _context.DeliverySchedules
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b.Client)
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b.StorageUnit)
+                .OrderByDescending(d => d.ScheduledDate)
+                .Select(d => new DeliveryScheduleResponseDto
+                {
+                    Id = d.Id,
+                    ScheduleNumber = d.ScheduleNumber ?? string.Empty,
+                    ClientName = d.Booking != null && d.Booking.Client != null ? d.Booking.Client.FullName : "Unknown",
+                    UnitNumber = d.Booking != null && d.Booking.StorageUnit != null ? d.Booking.StorageUnit.UnitNumber : "Unknown",
+                    DeliveryType = d.DeliveryType.ToString(),
+                    ScheduledDate = d.ScheduledDate,
+                    TimeSlot = d.TimeSlot ?? string.Empty,
+                    ItemCount = d.ItemCount,
+                    Status = d.Status.ToString(),
+                    AssignedDriver = d.AssignedDriver != null ? d.AssignedDriver.FullName : string.Empty
+                })
+                .ToListAsync();
+
+            // Add drivers to ViewBag
+            var drivers = await _context.Drivers
+                .Where(d => d.Status == StaffStatus.Active)
+                .Select(d => new { d.Id, d.FullName, d.VehicleAssigned })
+                .ToListAsync();
+
+            ViewBag.Drivers = drivers;
+
+            return View(schedules);
+        }
+
+        // ============ BREACH CASE METHODS ============
+
+        [HttpGet("Admin/BreachCases")]
+        public async Task<IActionResult> BreachCases()
+        {
+            var breachCases = await _context.BreachCases
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+            return View(breachCases);
+        }
+
+        [HttpGet("Admin/CreateBreachCase")]
+        public IActionResult CreateBreachCase()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateBreachCase(string customerName, int contractId, string breachReason, decimal outstandingAmount)
+        {
+            var breachCase = new BreachCase
+            {
+                ContractId = contractId,
+                CustomerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin",
+                CustomerName = customerName,
+                BreachReason = breachReason,
+                BreachDate = DateTime.Now,
+                OutstandingAmount = outstandingAmount,
+                Status = "Pending",
+                CreatedAt = DateTime.Now
+            };
+
+            _context.BreachCases.Add(breachCase);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Breach case for {customerName} created successfully!";
+            return RedirectToAction("BreachCases");
+        }
+
+        [HttpGet("Admin/ApproveBreachCase/{id}")]
+        public async Task<IActionResult> ApproveBreachCase(int id)
+        {
+            var breachCase = await _context.BreachCases.FindAsync(id);
+            if (breachCase != null)
+            {
+                breachCase.Status = "Approved";
+                breachCase.ApprovedDate = DateTime.Now;
+                breachCase.ApprovedBy = User.Identity?.Name;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Breach case approved.";
+            }
+            return RedirectToAction("BreachCases");
+        }
+
+        [HttpGet("Admin/RejectBreachCase/{id}")]
+        public async Task<IActionResult> RejectBreachCase(int id)
+        {
+            var breachCase = await _context.BreachCases.FindAsync(id);
+            if (breachCase != null)
+            {
+                breachCase.Status = "Rejected";
+                breachCase.ApprovedDate = DateTime.Now;
+                breachCase.ApprovedBy = User.Identity?.Name;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Breach case rejected.";
+            }
+            return RedirectToAction("BreachCases");
+        }
+
+        [HttpGet("Admin/CatalogueGoods/{breachCaseId}")]
+        public async Task<IActionResult> CatalogueGoods(int breachCaseId)
+        {
+            var breachCase = await _context.BreachCases.FindAsync(breachCaseId);
+            if (breachCase == null || breachCase.Status != "Approved")
+            {
+                TempData["Error"] = "Only approved breach cases can be catalogued";
+                return RedirectToAction("BreachCases");
+            }
+
+            ViewBag.BreachCaseId = breachCaseId;
+            ViewBag.CustomerName = breachCase.CustomerName;
+            return View();
+        }
+
+        [HttpPost("Admin/CatalogueGoods")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CatalogueGoods(AssetForSale asset)
+        {
+            if (ModelState.IsValid)
+            {
+                asset.Status = "Catalogued";
+                asset.CreatedAt = DateTime.Now;
+                _context.AssetsForSale.Add(asset);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Item '{asset.ItemName}' has been catalogued!";
+
+                // Redirect to ViewCatalogue page directly
+                return RedirectToAction("ViewCatalogue", new { breachCaseId = asset.BreachCaseId });
+            }
+
+            // If error, go back to catalogue form
+            ViewBag.BreachCaseId = asset.BreachCaseId;
+            return View(asset);
+        }
+
+        [HttpGet("Admin/ViewCatalogue/{breachCaseId}")]
+        public async Task<IActionResult> ViewCatalogue(int breachCaseId)
+        {
+            var assets = await _context.AssetsForSale
+                .Where(a => a.BreachCaseId == breachCaseId)
+                .ToListAsync();
+
+            var breachCase = await _context.BreachCases.FindAsync(breachCaseId);
+            ViewBag.CustomerName = breachCase?.CustomerName;
+            ViewBag.BreachCaseId = breachCaseId;
+
+            return View(assets);
+        }
+
+        [HttpPost("Admin/DeleteAsset/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAsset(int id)
+        {
+            var asset = await _context.AssetsForSale.FindAsync(id);
+            if (asset != null)
+            {
+                int breachCaseId = asset.BreachCaseId;
+                _context.AssetsForSale.Remove(asset);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Item removed from catalogue";
+                return RedirectToAction("ViewCatalogue", new { breachCaseId = breachCaseId });
+            }
+            return RedirectToAction("BreachCases");
+        }
+
+        [HttpGet("Admin/CreateAuction/{breachCaseId}")]
+        public async Task<IActionResult> CreateAuction(int breachCaseId)
+        {
+            var assets = await _context.AssetsForSale
+                .Where(a => a.BreachCaseId == breachCaseId)
+                .ToListAsync();
+
+            if (!assets.Any())
+            {
+                TempData["Error"] = "No catalogued goods found. Please add items to catalogue first.";
+                return RedirectToAction("ViewCatalogue", new { breachCaseId = breachCaseId });
+            }
+
+            ViewBag.Assets = assets;
+            ViewBag.BreachCaseId = breachCaseId;
+            return View();
+        }
+
+        [HttpPost("Admin/CreateAuction")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAuction(int breachCaseId, DateTime endDate, decimal startingBid)
+        {
+            // Get all catalogued assets for this breach case
+            var assets = await _context.AssetsForSale
+                .Where(a => a.BreachCaseId == breachCaseId && a.Status == "Catalogued")
+                .ToListAsync();
+
+            if (!assets.Any())
+            {
+                TempData["Error"] = "No catalogued goods found.";
+                return RedirectToAction("BreachCases");
+            }
+
+            // Create the auction
+            var auction = new Auction
+            {
+                AuctionNumber = "AUC-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"),
+                BreachCaseId = breachCaseId,
+                StartDate = DateTime.Now,
+                EndDate = endDate,
+                StartingBid = startingBid,
+                Status = "Published",
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Auctions.Add(auction);
+            await _context.SaveChangesAsync();
+
+            // IMPORTANT: Create AuctionItems for each asset
+            foreach (var asset in assets)
+            {
+                var auctionItem = new AuctionItem
+                {
+                    AuctionId = auction.Id,
+                    AssetId = asset.Id,
+                    ItemName = asset.ItemName,
+                    ReservePrice = asset.ReservePrice,
+                    Status = "Active"
+                };
+                _context.AuctionItems.Add(auctionItem);
+
+                // Update asset status to Listed
+                asset.Status = "Listed";
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Auction {auction.AuctionNumber} has been published with {assets.Count} items!";
+            return RedirectToAction("ViewAuction", new { id = auction.Id });
+        }
+
+        [HttpGet("Admin/ViewAuction/{id}")]
+        public async Task<IActionResult> ViewAuction(int id)
+        {
+            var auction = await _context.Auctions
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (auction == null)
+            {
+                return NotFound();
+            }
+
+            var items = await _context.AuctionItems
+                .Where(i => i.AuctionId == id)
+                .ToListAsync();
+
+            var bids = await _context.AuctionBids
+                .Where(b => b.AuctionId == id)
+                .OrderByDescending(b => b.BidAmount)
+                .ToListAsync();
+
+            ViewBag.Items = items;
+            ViewBag.Bids = bids;
+
+            return View(auction);
+        }
+
+        [HttpGet("Admin/AuctionBids/{auctionId}")]
+        public async Task<IActionResult> AuctionBids(int auctionId)
+        {
+            var auction = await _context.Auctions.FindAsync(auctionId);
+            if (auction == null)
+            {
+                return NotFound();
+            }
+
+            var bids = await _context.AuctionBids
+                .Where(b => b.AuctionId == auctionId)
+                .OrderByDescending(b => b.BidAmount)
+                .ToListAsync();
+
+            ViewBag.Auction = auction;
+            return View(bids);
+        }
+
+        [HttpGet("Admin/AllAuctions")]
+        public async Task<IActionResult> AllAuctions()
+        {
+            var auctions = await _context.Auctions
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            return View(auctions);
+        }
+
+        [HttpPost("Admin/CloseAuction/{auctionId}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseAuction(int auctionId)
+        {
+            var auction = await _context.Auctions.FindAsync(auctionId);
+
+            if (auction == null)
+            {
+                TempData["Error"] = "Auction not found.";
+                return RedirectToAction("AllAuctions");
+            }
+
+            if (auction.EndDate > DateTime.Now)
+            {
+                TempData["Error"] = "Auction has not ended yet. Cannot close before end date.";
+                return RedirectToAction("AllAuctions");
+            }
+
+            if (auction.Status == "Closed")
+            {
+                TempData["Error"] = "Auction is already closed.";
+                return RedirectToAction("AllAuctions");
+            }
+
+            // Get highest valid bid
+            var highestBid = await _context.AuctionBids
+                .Where(b => b.AuctionId == auctionId && b.Status == "Active")
+                .OrderByDescending(b => b.BidAmount)
+                .FirstOrDefaultAsync();
+
+            if (highestBid != null)
+            {
+                auction.WinningBidId = highestBid.Id;
+                auction.WinnerId = highestBid.BidderId;
+                auction.Status = "Closed";
+
+                // Mark winning bid as winner
+                highestBid.Status = "Won";
+
+                // Mark other bids as lost
+                var otherBids = await _context.AuctionBids
+                    .Where(b => b.AuctionId == auctionId && b.Id != highestBid.Id)
+                    .ToListAsync();
+
+                foreach (var bid in otherBids)
+                {
+                    bid.Status = "Lost";
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Auction closed! Winner: {highestBid.BidderName} with bid of R {highestBid.BidAmount:N2}";
+            }
+            else
+            {
+                auction.Status = "Closed";
+                await _context.SaveChangesAsync();
+                TempData["Info"] = "Auction closed with no bids.";
+            }
+
+            return RedirectToAction("AllAuctions");
+        }
+
+        [HttpGet("Admin/ScheduleTransport")]
+        public async Task<IActionResult> ScheduleTransport()
+        {
+            // Get pending delivery requests that need scheduling
+            var pendingDeliveries = await _context.DeliverySchedules
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b.Client)
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b.StorageUnit)
+                .Where(d => d.Status == ScheduleStatus.Pending)
+                .OrderBy(d => d.ScheduledDate)
+                .ToListAsync();
+
+            ViewBag.TimeSlots = new List<string> {
+        "09:00 - 11:00",
+        "11:00 - 13:00",
+        "13:00 - 15:00",
+        "15:00 - 17:00"
+    };
+
+            return View(pendingDeliveries);
+        }
+
+        [HttpPost("Admin/ScheduleTransport")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ScheduleTransport(int scheduleId, DateTime scheduledDate, string timeSlot, string route, string notes)
+        {
+            var schedule = await _context.DeliverySchedules.FindAsync(scheduleId);
+
+            if (schedule == null)
+            {
+                TempData["Error"] = "Delivery schedule not found.";
+                return RedirectToAction("ScheduleTransport");
+            }
+
+            schedule.ScheduledDate = scheduledDate;
+            schedule.TimeSlot = timeSlot;
+            schedule.Route = route;
+            schedule.AdminNotes = notes;
+            schedule.Status = ScheduleStatus.Confirmed;  // THIS IS KEY - Set to Confirmed (1)
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Transport job for {schedule.ScheduleNumber} has been scheduled for {scheduledDate:dd MMM yyyy} at {timeSlot}";
+            return RedirectToAction("ScheduleTransport");
+        }
+
+        [HttpGet("Admin/AssignDriver/{scheduleId}")]
+        public async Task<IActionResult> AssignDriver(int scheduleId)
+        {
+            var schedule = await _context.DeliverySchedules
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b.Client)
+                .FirstOrDefaultAsync(d => d.Id == scheduleId && d.Status == ScheduleStatus.Confirmed);
+
+            if (schedule == null)
+            {
+                TempData["Error"] = "No confirmed transport job found. Please schedule the job first.";
+                return RedirectToAction("ScheduleTransport");
+            }
+
+            var availableDrivers = await _context.Drivers
+                .Where(d => d.Status == StaffStatus.Active)
+                .Select(d => new { d.Id, d.FullName, d.VehicleAssigned, d.Phone })
+                .ToListAsync();
+
+            ViewBag.Schedule = schedule;
+            ViewBag.Drivers = availableDrivers;
+
+            return View();
+        }
+
+        [HttpPost("Admin/AssignDriver")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignDriver(int scheduleId, int driverId)
+        {
+            var schedule = await _context.DeliverySchedules.FindAsync(scheduleId);
+            var driver = await _context.Drivers.FindAsync(driverId);
+
+            if (schedule == null)
+            {
+                TempData["Error"] = "Delivery schedule not found.";
+                return RedirectToAction("ScheduleTransport");
+            }
+
+            if (driver == null)
+            {
+                TempData["Error"] = "Driver not found.";
+                return RedirectToAction("AssignDriver", new { scheduleId = scheduleId });
+            }
+
+            schedule.AssignedDriverId = driverId;
+            schedule.Status = ScheduleStatus.InProgress;  // Change to In Progress
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Driver {driver.FullName} has been assigned to transport job {schedule.ScheduleNumber}";
+
+            // Redirect to a confirmation page or back to Assign Driver with success message
+            return RedirectToAction("AssignDriverConfirmation", new { scheduleId = scheduleId });
+        }
+
+        [HttpGet("Admin/AssignDriverConfirmation/{scheduleId}")]
+        public async Task<IActionResult> AssignDriverConfirmation(int scheduleId)
+        {
+            var schedule = await _context.DeliverySchedules
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b.Client)
+                .Include(d => d.AssignedDriver)
+                .FirstOrDefaultAsync(d => d.Id == scheduleId);
+
+            if (schedule == null)
+            {
+                return RedirectToAction("ScheduleTransport");
+            }
+
+            return View(schedule);
+        }
+
+        [HttpGet("Admin/CustomerRatings")]
+        public async Task<IActionResult> CustomerRatings()
+        {
+            var ratings = await _context.DeliverySchedules
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b.Client)
+                .Where(d => d.IsRated == true)
+                .OrderByDescending(d => d.RatedAt)
+                .Select(d => new
+                {
+                    d.ScheduleNumber,
+                    CustomerName = d.Booking.Client.FullName,
+                    d.Rating,
+                    d.CustomerFeedback,
+                    d.IssueReported,
+                    d.RatedAt
+                })
+                .ToListAsync();
+
+            return View(ratings);
         }
     }
 }

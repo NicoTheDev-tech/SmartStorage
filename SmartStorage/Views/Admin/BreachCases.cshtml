@@ -1,0 +1,208 @@
+﻿@model IEnumerable<SmartStorage.Core.Entities.BreachCase>
+@{
+    ViewData["Title"] = "Breach Cases";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 mb-0">Breach Cases - Asset Disposal Approval</h1>
+            <p class="text-muted">Review and approve breach cases for asset disposal</p>
+        </div>
+        <a href="/Admin/CreateBreachCase" class="btn btn-gold">
+            <i class="bi bi-plus-circle"></i> Create New Breach Case
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Customer</th>
+                            <th>Contract ID</th>
+                            <th>Breach Reason</th>
+                            <th>Breach Date</th>
+                            <th>Outstanding Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var breach in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@breach.CustomerName</td>
+                                    <td>@breach.ContractId</td>
+                                    <td>@breach.BreachReason</td>
+                                    <td>@breach.BreachDate.ToString("dd MMM yyyy")</td>
+                                    <td>R @breach.OutstandingAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (breach.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
+                                        }
+                                        else if (breach.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">Approved</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Rejected</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (breach.Status == "Pending")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success" onclick="showApproveModal(@breach.Id)">Approve</button>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="showRejectModal(@breach.Id)">Reject</button>
+                                        }
+                                        else if (breach.Status == "Approved")
+                                        {
+                                            <a href="/Admin/CatalogueGoods/@breach.Id" class="btn btn-sm btn-gold">Catalogue Goods</a>
+                                            <a href="/Admin/ViewCatalogue/@breach.Id" class="btn btn-sm btn-outline-info">View Catalogue</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4">No breach cases found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill fs-3 text-white me-2"></i>
+                    <h5 class="modal-title text-white">Approve Breach Case</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-0">Are you sure you want to <strong class="text-success">approve</strong> this breach case?</p>
+                <p class="text-muted mt-2">This will allow asset disposal to proceed.</p>
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-info-circle"></i>
+                    <small>Once approved, the customer's goods will be catalogued and listed for sale.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pb-4">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success rounded-pill px-4" id="confirmApproveBtn">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header bg-danger">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-x-circle-fill fs-3 text-white me-2"></i>
+                    <h5 class="modal-title text-white">Reject Breach Case</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-0">Are you sure you want to <strong class="text-danger">reject</strong> this breach case?</p>
+                <p class="text-muted mt-2">The customer will keep their goods.</p>
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle"></i>
+                    <small>The breach case will be closed and no further action will be taken.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pb-4">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmRejectBtn">Reject</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="selectedBreachId" />
+
+<script>
+    function showApproveModal(breachId) {
+        document.getElementById('selectedBreachId').value = breachId;
+        var myModal = new bootstrap.Modal(document.getElementById('approveModal'));
+        myModal.show();
+    }
+    
+    function showRejectModal(breachId) {
+        document.getElementById('selectedBreachId').value = breachId;
+        var myModal = new bootstrap.Modal(document.getElementById('rejectModal'));
+        myModal.show();
+    }
+    
+    document.getElementById('confirmApproveBtn').addEventListener('click', function() {
+        var breachId = document.getElementById('selectedBreachId').value;
+        window.location.href = '/Admin/ApproveBreachCase/' + breachId;
+    });
+    
+    document.getElementById('confirmRejectBtn').addEventListener('click', function() {
+        var breachId = document.getElementById('selectedBreachId').value;
+        window.location.href = '/Admin/RejectBreachCase/' + breachId;
+    });
+</script>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 2px;
+    }
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: 12px;
+        margin: 2px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+    .btn-outline-info {
+        border: 1px solid #0dcaf0;
+        color: #0dcaf0;
+        background: transparent;
+        padding: 4px 10px;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 2px;
+        border-radius: 5px;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+</style>

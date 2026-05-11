@@ -38,7 +38,6 @@ namespace SmartStorage.Infrastructure.Services
                     FullName = "Customer",
                     Email = "customer@email.com",
                     Phone = "",
-                    IdNumber = "",
                     Address = ""
                 };
             }
@@ -88,7 +87,7 @@ namespace SmartStorage.Infrastructure.Services
                     StorageUnitId = bookingDto.StorageUnitId,
                     StartDate = bookingDto.StartDate,
                     EndDate = bookingDto.EndDate,
-                    TotalAmount = amountDueToday,  // First month at discounted rate
+                    TotalAmount = amountDueToday,
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -136,7 +135,26 @@ namespace SmartStorage.Infrastructure.Services
 
         public async Task<bool> CheckAvailability(int storageUnitId, DateTime startDate, DateTime endDate)
         {
-            return await Task.FromResult(true);
+            try
+            {
+                var unit = await _context.StorageUnits
+                    .Include(u => u.Bookings)
+                    .FirstOrDefaultAsync(u => u.Id == storageUnitId);
+
+                if (unit == null || !unit.IsActive)
+                    return false;
+
+                var hasConflict = unit.Bookings != null && unit.Bookings.Any(b =>
+                    (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Active) &&
+                    !(endDate <= b.StartDate || startDate >= b.EndDate));
+
+                return !hasConflict;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking availability for unit {StorageUnitId}", storageUnitId);
+                return false;
+            }
         }
 
         private async Task<Client> GetOrCreateClient(ClientInfoDto clientInfo, string userId)
@@ -151,32 +169,16 @@ namespace SmartStorage.Infrastructure.Services
 
             if (client == null)
             {
-                client = await _context.Clients.FirstOrDefaultAsync(c => c.Email == clientInfo.Email || c.IdNumber == clientInfo.IdNumber);
-            }
-
-            if (client == null)
-            {
                 client = new Client
                 {
                     UserId = userId,
                     FullName = clientInfo.FullName ?? "Unknown",
                     Email = clientInfo.Email ?? "unknown@email.com",
                     Phone = clientInfo.Phone ?? string.Empty,
-                    IdNumber = clientInfo.IdNumber ?? string.Empty,
                     Address = clientInfo.Address ?? string.Empty,
                     RegistrationDate = DateTime.UtcNow
                 };
                 _context.Clients.Add(client);
-                await _context.SaveChangesAsync();
-            }
-            else if (client.UserId != userId)
-            {
-                client.UserId = userId;
-                client.FullName = clientInfo.FullName ?? client.FullName;
-                client.Email = clientInfo.Email ?? client.Email;
-                client.Phone = clientInfo.Phone ?? client.Phone;
-                client.Address = clientInfo.Address ?? client.Address;
-                client.IdNumber = clientInfo.IdNumber ?? client.IdNumber;
                 await _context.SaveChangesAsync();
             }
 

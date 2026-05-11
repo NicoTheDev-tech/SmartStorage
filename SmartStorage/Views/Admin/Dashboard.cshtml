@@ -1,24 +1,33 @@
-﻿@using SmartStorage.Core.DTOs
-@model AdminDashboardViewModel
-
+﻿@model SmartStorage.Core.DTOs.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container py-4">
-    <!-- Welcome Section -->
+<div class="container-fluid px-4 py-4">
+    <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
-                <div class="card-body p-4">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+                <div class="card-body p-4 position-relative">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h1 class="mb-2" style="color: #000000;">👋 Welcome back, Admin!</h1>
-                            <p class="mb-0" style="color: #000000; opacity: 0.8;">Here's an overview of your SmartStorage system</p>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-3 p-2 bg-white bg-opacity-20 rounded-3">
+                                    <i class="bi bi-shield-shield fs-1 text-gold"></i>
+                                </div>
+                                <div>
+                                    <h1 class="text-white mb-1 fw-bold">Admin Control Center</h1>
+                                    <p class="text-white-50 mb-0">Complete oversight of SmartStorage operations</p>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark me-2 p-2">Welcome back</span>
+                                <span class="badge bg-light text-dark p-2">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</span>
+                            </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <i class="bi bi-shield-lock" style="font-size: 4rem; color: #000000;"></i>
+                            <i class="bi bi-gem" style="font-size: 5rem; color: #D4AF37; opacity: 0.3; position: absolute; right: 20px; bottom: 20px;"></i>
                         </div>
                     </div>
                 </div>
@@ -26,184 +35,337 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Revenue Cards Row -->
     <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-journal-bookmark-fill fs-1 text-gold"></i>
-                    <h3 class="mt-2 mb-0">@Model.TotalBookings</h3>
-                    <p class="text-muted mb-0">Total Bookings</p>
-                    <small class="text-warning">@Model.PendingBookings Pending</small>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Total Revenue</p>
+                            <h2 class="mb-0 fw-bold text-dark">R @Model.TotalRevenue.ToString("N0")</h2>
+                            <small class="text-success"><i class="bi bi-graph-up"></i> Lifetime</small>
+                        </div>
+                        <div class="rounded-3 p-3" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);">
+                            <i class="bi bi-currency-dollar fs-3 text-white"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-file-text fs-1 text-gold"></i>
-                    <h3 class="mt-2 mb-0">@Model.ActiveContracts</h3>
-                    <p class="text-muted mb-0">Active Contracts</p>
-                    <small class="text-warning">@Model.PendingContracts Pending</small>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Monthly Revenue</p>
+                            <h2 class="mb-0 fw-bold text-dark">R @Model.MonthlyRevenue.ToString("N0")</h2>
+                            <small class="text-info"><i class="bi bi-calendar"></i> This month</small>
+                        </div>
+                        <div class="rounded-3 p-3 bg-info bg-opacity-10">
+                            <i class="bi bi-calendar-check fs-3 text-info"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-receipt fs-1 text-gold"></i>
-                    <h3 class="mt-2 mb-0">R @Model.MonthlyRevenue.ToString("N0")</h3>
-                    <p class="text-muted mb-0">Monthly Revenue</p>
-                    <small>Total: R @Model.TotalRevenue.ToString("N0")</small>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Pending Payments</p>
+                            <h2 class="mb-0 fw-bold text-dark">R @Model.PendingPayments.ToString("N0")</h2>
+                            <small class="text-warning"><i class="bi bi-clock-history"></i> Awaiting</small>
+                        </div>
+                        <div class="rounded-3 p-3 bg-warning bg-opacity-10">
+                            <i class="bi bi-hourglass-split fs-3 text-warning"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-people fs-1 text-gold"></i>
-                    <h3 class="mt-2 mb-0">@Model.ActiveUsers</h3>
-                    <p class="text-muted mb-0">Active Users</p>
-                    <small>@Model.PendingPayments Pending Payments</small>
+
+        <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+            <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+            <h5 class="mt-2">Breach Cases</h5>
+            <p>Review and approve asset disposal requests</p>
+            <a href="/Admin/BreachCases" class="btn btn-gold">Manage Breach Cases</a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+            <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+            <h5 class="mt-2">Breach Cases</h5>
+            <p>Review, approve, or reject asset disposal requests</p>
+            <a href="/Admin/BreachCases" class="btn btn-gold btn-sm">View Cases</a>
+            <a href="/Admin/CreateBreachCase" class="btn btn-outline-gold btn-sm mt-2">+ Create New Case</a>
+        </div>
+    </div>
+</div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">Active Users</p>
+                            <h2 class="mb-0 fw-bold text-dark">@Model.ActiveUsers</h2>
+                            <small class="text-success"><i class="bi bi-person-check"></i> Registered</small>
+                        </div>
+                        <div class="rounded-3 p-3 bg-success bg-opacity-10">
+                            <i class="bi bi-people fs-3 text-success"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- Recent Bookings -->
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-journal-bookmark-fill text-gold"></i> Recent Bookings</h5>
-                        <a href="/Admin/Reservations" class="btn btn-sm btn-outline-gold">View All</a>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-gavel fs-1 text-gold"></i>
+                <h5 class="mt-2">Auctions & Bids</h5>
+                <p>View all auctions and monitor customer bids</p>
+                <a href="/Admin/AllAuctions" class="btn btn-gold">View Auctions</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-check fs-1 text-gold"></i>
+                <h5 class="mt-2">Schedule Transport</h5>
+                <p>Plan and assign date, time, and route for transport jobs</p>
+                <a href="/Admin/ScheduleTransport" class="btn btn-gold">Schedule Jobs</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-person-badge fs-1 text-gold"></i>
+                <h5 class="mt-2">Assign Driver</h5>
+                <p>Select and assign drivers to transport jobs</p>
+                <a href="/Admin/ScheduleTransport" class="btn btn-gold">Assign Drivers</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+            <i class="bi bi-star-fill fs-1 text-gold"></i>
+            <h5 class="mt-2">Customer Ratings</h5>
+            <p>View all customer feedback and ratings</p>
+            <a href="/Admin/CustomerRatings" class="btn btn-gold">View Ratings</a>
+        </div>
+    </div>
+</div>
+
+    <!-- Stats Cards Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-2">
+                        <i class="bi bi-journal-bookmark-fill fs-3 text-primary"></i>
                     </div>
-                </div>
-                <div class="card-body">
-                    @if (Model.RecentBookings != null && Model.RecentBookings.Any())
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Booking #</th>
-                                        <th>Client</th>
-                                        <th>Unit</th>
-                                        <th>Status</th>
-                                        <th>Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var booking in Model.RecentBookings)
-                                    {
-                                        <tr>
-                                            <td>@booking.BookingNumber</td>
-                                            <td>@booking.ClientName</td>
-                                            <td>@booking.UnitNumber</td>
-                                            <td>
-                                                @if (booking.Status == "Confirmed")
-                                                {
-                                                    <span class="badge bg-success">Confirmed</span>
-                                                }
-                                                else if (booking.Status == "Pending")
-                                                {
-                                                    <span class="badge bg-warning">Pending</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">@booking.Status</span>
-                                                }
-                                            </td>
-                                            <td>R @booking.Amount.ToString("N0")</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted text-center py-3">No recent bookings</p>
-                    }
+                    <h3 class="mb-0 fw-bold">@Model.TotalBookings</h3>
+                    <p class="text-muted small mb-0">Total Bookings</p>
                 </div>
             </div>
         </div>
-
-        <!-- Recent Payments -->
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 pt-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-receipt text-gold"></i> Recent Payments</h5>
-                        <a href="/Admin/Billing" class="btn btn-sm btn-outline-gold">View All</a>
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-2">
+                        <i class="bi bi-clock-history fs-3 text-warning"></i>
                     </div>
+                    <h3 class="mb-0 fw-bold">@Model.PendingBookings</h3>
+                    <p class="text-muted small mb-0">Pending</p>
                 </div>
-                <div class="card-body">
-                    @if (Model.RecentPayments != null && Model.RecentPayments.Any())
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Reference</th>
-                                        <th>Client</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var payment in Model.RecentPayments)
-                                    {
-                                        <tr>
-                                            <td>@payment.PaymentReference</td>
-                                            <td>@payment.ClientName</td>
-                                            <td>R @payment.Amount.ToString("N0")</td>
-                                            <td><span class="badge bg-success">@payment.Status</span></td>
-                                            <td>@payment.Date.ToString("dd MMM yyyy")</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted text-center py-3">No recent payments</p>
-                    }
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-2">
+                        <i class="bi bi-file-text fs-3 text-success"></i>
+                    </div>
+                    <h3 class="mb-0 fw-bold">@Model.ActiveContracts</h3>
+                    <p class="text-muted small mb-0">Active Contracts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-2">
+                        <i class="bi bi-box-seam fs-3 text-info"></i>
+                    </div>
+                    <h3 class="mb-0 fw-bold">@Model.TotalStorageUnits</h3>
+                    <p class="text-muted small mb-0">Storage Units</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-gold bg-opacity-10 p-3 d-inline-block mb-2">
+                        <i class="bi bi-building fs-3 text-gold"></i>
+                    </div>
+                    <h3 class="mb-0 fw-bold">@Model.AvailableUnits</h3>
+                    <p class="text-muted small mb-0">Available</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 d-inline-block mb-2">
+                        <i class="bi bi-truck fs-3 text-danger"></i>
+                    </div>
+                    <h3 class="mb-0 fw-bold">@Model.PendingDeliveries</h3>
+                    <p class="text-muted small mb-0">Pending Deliveries</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Recent Activity Section -->
+    <div class="row g-4">
+        <div class="col-xl-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-journal-bookmark-fill text-gold me-2"></i>Recent Bookings</h5>
+                        <a href="/Admin/Reservations" class="btn btn-sm btn-outline-gold rounded-pill">View All →</a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Booking #</th>
+                                    <th>Client</th>
+                                    <th>Unit</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.RecentBookings != null && Model.RecentBookings.Any())
+                                {
+                                    @foreach (var booking in Model.RecentBookings)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@booking.BookingNumber</td>
+                                            <td>@booking.ClientName</td>
+                                            <td>@booking.UnitNumber</td>
+                                            <td>R @booking.Amount.ToString("N0")</td>
+                                            <td>
+                                                @if (booking.Status == "Confirmed")
+                                                {
+                                                    <span class="badge bg-success rounded-pill">Confirmed</span>
+                                                }
+                                                else if (booking.Status == "Pending")
+                                                {
+                                                    <span class="badge bg-warning rounded-pill">Pending</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary rounded-pill">@booking.Status</span>
+                                                }
+                                            </td>
+                                            <td class="text-muted small">@booking.Date.ToString("dd MMM yyyy")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">No recent bookings</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-5">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-credit-card text-gold me-2"></i>Recent Payments</h5>
+                        <a href="/Admin/Billing" class="btn btn-sm btn-outline-gold rounded-pill">View All →</a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Client</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.RecentPayments != null && Model.RecentPayments.Any())
+                                {
+                                    @foreach (var payment in Model.RecentPayments)
+                                    {
+                                        <tr>
+                                            <td class="small">@payment.PaymentReference</td>
+                                            <td>@payment.ClientName</td>
+                                            <td class="fw-bold text-success">R @payment.Amount.ToString("N0")</td>
+                                            <td class="text-muted small">@payment.Date.ToString("dd MMM")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">No recent payments</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Bar -->
     <div class="row mt-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
-                    <h5 class="mb-3"><i class="bi bi-lightning-charge text-gold"></i> Quick Actions</h5>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <a href="/Admin/StorageUnits/Create" class="btn btn-outline-gold w-100">
-                                <i class="bi bi-plus-circle"></i> Add Storage Unit
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/Admin/Reservations" class="btn btn-outline-gold w-100">
-                                <i class="bi bi-check-circle"></i> Approve Bookings
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/Admin/Contracts" class="btn btn-outline-gold w-100">
-                                <i class="bi bi-file-text"></i> Review Contracts
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/Admin/Billing" class="btn btn-outline-gold w-100">
-                                <i class="bi bi-credit-card"></i> Verify Payments
-                            </a>
-                        </div>
+                    <h6 class="mb-3 fw-bold"><i class="bi bi-lightning-charge text-gold me-2"></i>Quick Actions</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="/Admin/Users" class="btn btn-gold rounded-pill"><i class="bi bi-people"></i> Manage Users</a>
+                        <a href="/Admin/StorageUnits" class="btn btn-outline-gold rounded-pill"><i class="bi bi-box-seam"></i> Manage Units</a>
+                        <a href="/Admin/PendingExtensions" class="btn btn-outline-gold rounded-pill"><i class="bi bi-calendar-check"></i> Pending Extensions</a>
+                        <a href="/Admin/Contracts" class="btn btn-outline-gold rounded-pill"><i class="bi bi-file-text"></i> Contracts</a>
+                        <a href="/Admin/Delivery" class="btn btn-outline-gold rounded-pill"><i class="bi bi-truck"></i> Deliveries</a>
+                        <a href="/Admin/Reports" class="btn btn-outline-gold rounded-pill"><i class="bi bi-graph-up"></i> Reports</a>
                     </div>
                 </div>
             </div>
@@ -212,16 +374,48 @@
 </div>
 
 <style>
-    .text-gold {
-        color: var(--gold);
+    .text-gold, .bg-gold {
+        color: #D4AF37 !important;
+    }
+    .bg-gold {
+        background-color: #D4AF37 !important;
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        color: #1A1A1A;
     }
     .btn-outline-gold {
-        color: var(--gold);
-        border-color: var(--gold);
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
     .btn-outline-gold:hover {
-        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-        color: var(--charcoal);
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
         border-color: transparent;
+        transform: translateY(-2px);
+    }
+    .bg-opacity-20 {
+        opacity: 0.2;
+    }
+    .rounded-4 {
+        border-radius: 1rem !important;
+    }
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
     }
 </style>

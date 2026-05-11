@@ -52,7 +52,7 @@
                     <tbody>
                         @if (Model != null && Model.Any())
                         {
-                            @foreach (var schedule in Model)
+                            foreach (var schedule in Model)
                             {
                                 <tr>
                                     <td class="fw-semibold">@schedule.ScheduleNumber</td>
@@ -81,13 +81,25 @@
                                     </td>
                                     <td>
                                         <a href="/Customer/DeliveryScheduleDetails/@schedule.Id" class="btn btn-sm btn-primary">View</a>
+                                        
                                         @if (schedule.CanReschedule && schedule.Status != "Completed")
                                         {
                                             <a href="/Customer/RescheduleDelivery/@schedule.Id" class="btn btn-sm btn-warning">Reschedule</a>
                                         }
+                                        
                                         @if (schedule.CanSchedule && schedule.Status != "Completed")
                                         {
                                             <button type="button" class="btn btn-sm btn-danger" onclick="showCancelModal(@schedule.Id)">Cancel</button>
+                                        }
+                                        
+                                        @if (schedule.Status == "Completed" && schedule.IsRated != true)
+                                        {
+                                            <a href="/Customer/RateDelivery/@schedule.Id" class="btn btn-sm btn-gold">Rate Service</a>
+                                        }
+                                        
+                                        @if (schedule.IsRated == true)
+                                        {
+                                            <span class="badge bg-success">✓ Rated ( @schedule.Rating stars )</span>
                                         }
                                     </td>
                                 </tr>
@@ -145,7 +157,7 @@
 
 <style>
     .text-gold {
-        color: var(--gold);
+        color: #D4AF37;
     }
     .btn-gold {
         background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);

@@ -194,6 +194,94 @@ namespace SmartStorage.Infrastructure.Services
             }
         }
 
+        private string GenerateBookingPendingEmailHtml(Booking booking, string clientName)
+        {
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body {{ font-family: Arial, sans-serif; }}
+    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+    .header {{ background-color: #f39c12; color: white; padding: 20px; text-align: center; }}
+    .content {{ padding: 20px; }}
+    .amount {{ font-size: 24px; color: #e67e22; font-weight: bold; }}
+    .footer {{ margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 12px; text-align: center; }}
+</style>
+</head>
+<body>
+<div class='container'>
+    <div class='header'>
+        <h2>Booking Pending - Awaiting Payment</h2>
+    </div>
+    <div class='content'>
+        <p>Dear {clientName},</p>
+        <p>Your storage booking has been created but is <strong>PENDING PAYMENT</strong>.</p>
+        <p>To complete your booking, please review and sign your contract, then make payment.</p>
+        <p><strong>Booking Details:</strong></p>
+        <ul>
+            <li>Booking Number: <strong>{booking.BookingNumber}</strong></li>
+            <li>Start Date: {booking.StartDate:dd MMMM yyyy}</li>
+            <li>End Date: {booking.EndDate:dd MMMM yyyy}</li>
+            <li>Amount Due: <span class='amount'>R{booking.TotalAmount:N2}</span></li>
+        </ul>
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+            <li>Review and sign your contract</li>
+            <li>Make payment using the link provided</li>
+            <li>Once payment is confirmed, your booking will be finalized</li>
+        </ol>
+        <p><strong>Payment Details:</strong></p>
+        <ul>
+            <li>Bank: First National Bank (FNB)</li>
+            <li>Account: SmartStorage (Pty) Ltd</li>
+            <li>Account Number: 1234567890</li>
+            <li>Reference: {booking.BookingNumber}</li>
+        </ul>
+        <p>If you have any questions, please don't hesitate to contact us.</p>
+        <p>Best regards,<br>The SmartStorage Team</p>
+    </div>
+    <div class='footer'>
+        <p>SmartStorage | 123 Storage Street, Johannesburg | Tel: 0800 123 456</p>
+    </div>
+</div>
+</body>
+</html>";
+        }
+
+        public async Task SendBookingPendingEmailAsync(Booking booking, string clientEmail, string clientName)
+        {
+            try
+            {
+                if (booking == null) throw new ArgumentNullException(nameof(booking));
+                if (string.IsNullOrEmpty(clientEmail)) throw new ArgumentException("Client email is required");
+
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.FromEmail));
+                message.To.Add(new MailboxAddress(clientName, clientEmail));
+                message.Subject = $"Booking Pending - {booking.BookingNumber}";
+
+                var bodyBuilder = new BodyBuilder();
+                bodyBuilder.HtmlBody = GenerateBookingPendingEmailHtml(booking, clientName);
+
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using var smtpClient = new SmtpClient();
+                await smtpClient.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort,
+                    _emailSettings.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.Auto);
+                await smtpClient.AuthenticateAsync(_emailSettings.SmtpUsername, _emailSettings.SmtpPassword);
+                await smtpClient.SendAsync(message);
+                await smtpClient.DisconnectAsync(true);
+
+                _logger.LogInformation("Booking pending email sent to {Email} for booking {BookingNumber}",
+                    clientEmail, booking.BookingNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send booking pending email to {Email}", clientEmail);
+                throw;
+            }
+        }
         #region HTML Templates
 
         private string GenerateContractEmailHtml(Contract contract, string clientName)

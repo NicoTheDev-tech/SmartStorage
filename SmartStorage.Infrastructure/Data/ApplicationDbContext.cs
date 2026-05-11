@@ -16,8 +16,7 @@ namespace SmartStorage.Infrastructure.Data
         public DbSet<StorageUnit> StorageUnits { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Payment> Payments { get; set; }
-        public DbSet<Cartage> Cartages { get; set; }
-        public DbSet<Driver> Drivers { get; set; }
+        public DbSet<Cartage> Cartages { get; set; }       
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; }
         public DbSet<Asset> Assets { get; set; }
@@ -25,6 +24,16 @@ namespace SmartStorage.Infrastructure.Data
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<DeliverySchedule> DeliverySchedules { get; set; }
+        public DbSet<Staff> Staff { get; set; }
+        public DbSet<Driver> Drivers { get; set; }
+        public DbSet<WarehouseStaff> WarehouseStaff { get; set; }
+        public DbSet<GoodsIntake> GoodsIntakes { get; set; }
+        public DbSet<ContractExtension> ContractExtensions { get; set; }
+        public DbSet<BreachCase> BreachCases { get; set; }
+        public DbSet<AssetForSale> AssetsForSale { get; set; }
+        public DbSet<Auction> Auctions { get; set; }
+        public DbSet<AuctionItem> AuctionItems { get; set; }
+        public DbSet<AuctionBid> AuctionBids { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -76,10 +85,10 @@ namespace SmartStorage.Infrastructure.Data
 
             // Driver configuration
             modelBuilder.Entity<Driver>()
-                .HasOne(d => d.AssignedVehicle)
-                .WithOne()
-                .HasForeignKey<Driver>(d => d.AssignedVehicleId)
-                .OnDelete(DeleteBehavior.SetNull);
+    .HasOne(d => d.AssignedVehicle)
+    .WithOne(v => v.Driver)
+    .HasForeignKey<Driver>(d => d.AssignedVehicleId)
+    .OnDelete(DeleteBehavior.SetNull);
 
             // Contract configuration
             modelBuilder.Entity<Contract>()
@@ -171,10 +180,6 @@ namespace SmartStorage.Infrastructure.Data
 
             modelBuilder.Entity<Client>()
                 .HasIndex(c => c.Phone)
-                .IsUnique();
-
-            modelBuilder.Entity<Client>()
-                .HasIndex(c => c.IdNumber)
                 .IsUnique();
 
             // === SEED INITIAL DATA ===

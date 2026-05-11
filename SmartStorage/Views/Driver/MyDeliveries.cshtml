@@ -1,0 +1,101 @@
+﻿@using SmartStorage.Core.Entities
+@model IEnumerable<DeliverySchedule>
+@{
+    ViewData["Title"] = "My Deliveries";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-0">My Deliveries</h1>
+        <p class="text-muted">View and execute your assigned transport jobs</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Schedule #</th>
+                            <th>Client</th>
+                            <th>Unit</th>
+                            <th>Delivery Type</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var delivery in Model)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@delivery.ScheduleNumber</td>
+                                    <td>@delivery.Booking?.Client?.FullName</td>
+                                    <td>@delivery.Booking?.StorageUnit?.UnitNumber</td>
+                                    <td>
+                                        @if (delivery.DeliveryType == DeliveryType.Dropoff)
+                                        {
+                                            <span class="badge bg-info">Dropoff</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">Pickup</span>
+                                        }
+                                    </td>
+                                    <td>@delivery.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        @if (delivery.Status == ScheduleStatus.Confirmed)
+                                        {
+                                            <span class="badge bg-primary">Ready</span>
+                                        }
+                                        else if (delivery.Status == ScheduleStatus.InProgress)
+                                        {
+                                            <span class="badge bg-info">In Progress</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@delivery.Status</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="/Driver/ExecuteDelivery/@delivery.Id" class="btn btn-sm btn-gold">
+                                            <i class="bi bi-play-circle"></i> Execute
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4">No deliveries assignedYet</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 5px;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+</style>

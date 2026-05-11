@@ -219,7 +219,11 @@ namespace SmartStorage.Controllers
                     UnitNumber = d.Booking != null && d.Booking.StorageUnit != null
                         ? (d.Booking.StorageUnit.UnitNumber ?? "Unknown")
                         : "Unknown",
-                    ItemCount = d.ItemCount
+                    ItemCount = d.ItemCount,
+                    CanReschedule = d.Status == ScheduleStatus.Pending || d.Status == ScheduleStatus.Confirmed,
+                    CanSchedule = d.Status == ScheduleStatus.Pending,
+                    IsRated = d.IsRated ?? false,
+                    Rating = d.Rating
                 })
                 .ToListAsync();
 
@@ -410,7 +414,6 @@ namespace SmartStorage.Controllers
                 PreferredName = (client.PreferredName != null) ? client.PreferredName : string.Empty,
                 Email = (client.Email != null) ? client.Email : string.Empty,
                 Phone = (client.Phone != null) ? client.Phone : string.Empty,
-                IdNumber = (client.IdNumber != null) ? client.IdNumber : string.Empty,
                 Address = (client.Address != null) ? client.Address : string.Empty
             };
 
@@ -440,7 +443,6 @@ namespace SmartStorage.Controllers
             client.PreferredName = (model.PreferredName != null) ? model.PreferredName : string.Empty;
             client.Email = (model.Email != null) ? model.Email : string.Empty;
             client.Phone = (model.Phone != null) ? model.Phone : string.Empty;
-            client.IdNumber = (model.IdNumber != null) ? model.IdNumber : string.Empty;
             client.Address = (model.Address != null) ? model.Address : string.Empty;
 
             await _context.SaveChangesAsync();
@@ -746,13 +748,243 @@ namespace SmartStorage.Controllers
             return RedirectToAction("DeliverySchedule");
         }
 
+        [HttpGet("Auctions")]
+        public async Task<IActionResult> Auctions()
+        {
+            var activeAuctions = await _context.Auctions
+                .Where(a => a.Status == "Published" && a.EndDate > DateTime.Now)
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
 
+            return View(activeAuctions);
+        }
 
+        [HttpGet("AuctionDetails/{id}")]
+        public async Task<IActionResult> AuctionDetails(int id)
+        {
+            var auction = await _context.Auctions
+                .FirstOrDefaultAsync(a => a.Id == id);
 
+            if (auction == null)
+            {
+                return NotFound();
+            }
+
+            // IMPORTANT: Load items from AuctionItems table
+            var items = await _context.AuctionItems
+                .Where(i => i.AuctionId == id)
+                .ToListAsync();
+
+            var bids = await _context.AuctionBids
+                .Where(b => b.AuctionId == id)
+                .OrderByDescending(b => b.BidAmount)
+                .ToListAsync();
+
+            ViewBag.Items = items;
+            ViewBag.Bids = bids;
+
+            return View(auction);
+        }
+
+        [HttpPost("Customer/PlaceBid")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PlaceBid(int auctionId, decimal bidAmount)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (client == null)
+            {
+                TempData["Error"] = "Please login to place a bid.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var auction = await _context.Auctions.FindAsync(auctionId);
+
+            if (auction == null)
+            {
+                TempData["Error"] = "Auction not found.";
+                return RedirectToAction("Auctions");
+            }
+
+            if (auction.EndDate < DateTime.Now)
+            {
+                TempData["Error"] = "This auction has ended.";
+                return RedirectToAction("Auctions");
+            }
+
+            var highestBid = await _context.AuctionBids
+                .Where(b => b.AuctionId == auctionId)
+                .OrderByDescending(b => b.BidAmount)
+                .FirstOrDefaultAsync();
+
+            decimal minBid = auction.StartingBid;
+            if (highestBid != null)
+            {
+                minBid = highestBid.BidAmount + 50;
+            }
+
+            if (bidAmount < minBid)
+            {
+                TempData["Error"] = $"Minimum bid amount is R {minBid:N2}";
+                return RedirectToAction("AuctionDetails", new { id = auctionId });
+            }
+
+            var bid = new AuctionBid
+            {
+                AuctionId = auctionId,
+                BidderId = userId,
+                BidderName = client.FullName,
+                BidAmount = bidAmount,
+                BidTime = DateTime.Now,
+                Status = "Active"
+            };
+
+            _context.AuctionBids.Add(bid);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"You placed a bid of R {bidAmount:N2} successfully!";
+            return RedirectToAction("AuctionDetails", new { id = auctionId });
+        }
+
+        [HttpGet("RateDelivery/{id}")]
+        public async Task<IActionResult> RateDelivery(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (client == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var schedule = await _context.DeliverySchedules
+                .Include(d => d.Booking)
+                .FirstOrDefaultAsync(d => d.Id == id && d.Booking.ClientId == client.Id);
+
+            if (schedule == null)
+            {
+                return NotFound();
+            }
+
+            if (schedule.Status != ScheduleStatus.Completed)
+            {
+                TempData["Error"] = "You can only rate completed deliveries.";
+                return RedirectToAction("DeliverySchedule");
+            }
+
+            if (schedule.IsRated == true)
+            {
+                TempData["Error"] = "You have already rated this delivery.";
+                return RedirectToAction("DeliverySchedule");
+            }
+
+            return View(schedule);
+        }
+
+        [HttpPost("RateDelivery")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RateDelivery(int id, int rating, string feedback, string issueReported)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (client == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var schedule = await _context.DeliverySchedules
+                .FirstOrDefaultAsync(d => d.Id == id && d.Booking.ClientId == client.Id);
+
+            if (schedule == null)
+            {
+                return NotFound();
+            }
+
+            schedule.IsRated = true;
+            schedule.Rating = rating;
+            schedule.CustomerFeedback = feedback;
+            schedule.IssueReported = issueReported;
+            schedule.RatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Thank you for your rating of {rating} stars! Your feedback has been recorded.";
+
+            // Redirect to DeliverySchedule instead of Dashboard so you can see the Rated badge
+            return RedirectToAction("DeliverySchedule");
+        }
+        [HttpGet("RateTest")]
+        public IActionResult RateTest()
+        {
+            return Content("RateDelivery route is working!");
+        }
     }
 }
 
 #if SupressWarnings
 #pragma warning restore CS8602
-#pragma warning restore CS0229
+#pragma warning restore [HttpGet("RequestExtension/{contractId}")]
+public async Task<IActionResult> RequestExtension(int contractId)
+{
+    var contract = await _context.Contracts
+        .Include(c => c.StorageUnit)
+        .FirstOrDefaultAsync(c => c.Id == contractId);
+    
+    if (contract == null)
+    {
+        return NotFound();
+    }
+    
+    ViewBag.Contract = contract;
+    return View();
+}
+
+[HttpPost("RequestExtension")]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> RequestExtension(int contractId, int requestedDays, string reason)
+{
+    var contract = await _context.Contracts
+        .Include(c => c.Client)
+        .FirstOrDefaultAsync(c => c.Id == contractId);
+    
+    if (contract == null)
+    {
+        return NotFound();
+    }
+    
+    var extension = new ContractExtension
+    {
+        ContractId = contractId,
+        CustomerId = contract.Client.UserId,
+        RequestedDays = requestedDays,
+        CurrentEndDate = contract.EndDate,
+        ProposedNewEndDate = contract.EndDate.AddDays(requestedDays),
+        Reason = reason,
+        Status = "Pending",
+        RequestedDate = DateTime.Now
+    };
+    
+    _context.ContractExtensions.Add(extension);
+    await _context.SaveChangesAsync();
+    
+    TempData["Success"] = $"Extension request for {requestedDays} days submitted successfully! Awaiting approval.";
+    return RedirectToAction("MyContracts");
+}
+
+[HttpGet("ExtensionHistory")]
+public async Task<IActionResult> ExtensionHistory()
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    
+    var extensions = await _context.ContractExtensions
+        .Include(e => e.Contract)
+            .ThenInclude(c => c.StorageUnit)
+        .Where(e => e.CustomerId == userId)
+        .OrderByDescending(e => e.RequestedDate)
+        .ToListAsync();
+    
+    return View(extensions);
+}
 #endif

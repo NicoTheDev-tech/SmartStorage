@@ -1,0 +1,189 @@
+﻿@using SmartStorage.Core.Entities
+@{
+    ViewData["Title"] = "Operations Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="mb-2" style="color: #000000;">👋 Operations Dashboard</h1>
+                            <p class="mb-0" style="color: #000000; opacity: 0.8;">Manage deliveries, assign drivers, and monitor operations</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <i class="bi bi-gear" style="font-size: 4rem; color: #000000;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-truck fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.TotalDeliveries</h3>
+                    <p class="text-muted mb-0">Total Deliveries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history fs-1 text-warning"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.PendingDeliveries?.Count</h3>
+                    <p class="text-muted mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.CompletedCount</h3>
+                    <p class="text-muted mb-0">Completed</p>
+                    <small>@ViewBag.OnTimeRate% on time</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 text-info"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.AvailableDrivers?.Count</h3>
+                    <p class="text-muted mb-0">Available Drivers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Pending Deliveries -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-clock-history text-gold"></i> Pending Deliveries</h5>
+                        <a href="/Operations/AssignDrivers" class="btn btn-sm btn-outline-gold">Assign Now</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.PendingDeliveries != null && ViewBag.PendingDeliveries.Count > 0)
+                    {
+                        foreach (var delivery in ViewBag.PendingDeliveries)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">@delivery.ScheduleNumber</h6>
+                                        <p class="text-muted small mb-0">Unit @delivery.Booking?.StorageUnit?.UnitNumber | @delivery.ScheduledDate.ToString("dd MMM yyyy")</p>
+                                        <p class="text-muted small mb-0">Client: @delivery.Booking?.Client?.FullName</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning">Pending</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No pending deliveries</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress / Confirmed Deliveries -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-truck text-gold"></i> In Progress</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.ConfirmedDeliveries != null && ViewBag.ConfirmedDeliveries.Count > 0)
+                    {
+                        foreach (var delivery in ViewBag.ConfirmedDeliveries)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">@delivery.ScheduleNumber</h6>
+                                        <p class="text-muted small mb-0">Driver: @(delivery.AssignedDriver?.FullName ?? "Not assigned")</p>
+                                        <p class="text-muted small mb-0">Date: @delivery.ScheduledDate.ToString("dd MMM yyyy")</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">In Progress</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No deliveries in progress</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Quick Actions -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="mb-3"><i class="bi bi-lightning-charge text-gold"></i> Quick Actions</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="/Operations/AssignDrivers" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-person-plus"></i> Assign Drivers
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Operations/Schedule" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-calendar"></i> View Schedule
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Operations/Reports" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-graph-up"></i> Reports
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/Admin/Delivery/Calendar" class="btn btn-outline-gold w-100">
+                                <i class="bi bi-calendar-week"></i> Calendar View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    .btn-outline-gold {
+        border: 2px solid var(--gold);
+        color: var(--gold);
+        background: transparent;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        color: var(--charcoal);
+        border-color: transparent;
+    }
+</style>

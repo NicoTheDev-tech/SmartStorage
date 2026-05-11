@@ -8,11 +8,10 @@ namespace SmartStorage.Core.Entities
         public int Id { get; set; }
         public string UserId { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
-        public string PreferredName { get; set; } = string.Empty;  // Add this
+        public string PreferredName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string IdNumber { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;  // Add this
+        public string Address { get; set; } = string.Empty;  // Add this
         public DateTime RegistrationDate { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Payment>? Payments { get; set; }

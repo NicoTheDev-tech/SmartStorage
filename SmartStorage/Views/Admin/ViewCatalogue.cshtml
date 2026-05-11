@@ -1,0 +1,95 @@
+﻿@model IEnumerable<SmartStorage.Core.Entities.AssetForSale>
+@{
+    ViewData["Title"] = "Goods Catalogue";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 mb-0">Goods Catalogue</h1>
+            <p class="text-muted">Items catalogued for sale - Customer: @ViewBag.CustomerName</p>
+        </div>
+        <div>
+    <a href="/Admin/CatalogueGoods/@ViewBag.BreachCaseId" class="btn btn-gold">Add More Items</a>
+    <a href="/Admin/CreateAuction/@ViewBag.BreachCaseId" class="btn btn-gold">Create Auction Listing</a>
+    <a href="/Admin/BreachCases" class="btn btn-outline-gold">Back to Breach Cases</a>
+</div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Condition</th>
+                            <th>Est. Value</th>
+                            <th>Reserve Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.ItemName</td>
+                                    <td>@(item.Description.Length > 40 ? item.Description.Substring(0, 40) + "..." : item.Description)</td>
+                                    <td>@item.Quantity</td>
+                                    <td>
+                                        @if (item.Condition == "Excellent")
+                                        {
+                                            <span class="badge bg-success">Excellent</span>
+                                        }
+                                        else if (item.Condition == "Good")
+                                        {
+                                            <span class="badge bg-info">Good</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">@item.Condition</span>
+                                        }
+                                     </td>
+                                    <td>R @item.EstimatedValue.ToString("N2")</td>
+                                    <td>R @item.ReservePrice.ToString("N2")</td>
+                                    <td><span class="badge bg-primary">@item.Status</span></td>
+                                    <td>
+                                        <form asp-action="DeleteAsset" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Remove this item?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-4">No items catalogued yet</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+    }
+</style>

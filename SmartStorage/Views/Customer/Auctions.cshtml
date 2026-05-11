@@ -1,0 +1,69 @@
+﻿@model IEnumerable<SmartStorage.Core.Entities.Auction>
+@{
+    ViewData["Title"] = "Active Auctions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold">Active Auctions</h1>
+        <p class="text-muted">Browse and bid on available items from breach cases</p>
+    </div>
+
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var auction in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                            <h5 class="card-title">@auction.AuctionNumber</h5>
+                            <p class="card-text text-muted small">
+                                <i class="bi bi-calendar"></i> Ends: @auction.EndDate.ToString("dd MMM yyyy HH:mm")
+                            </p>
+                            <p class="card-text">
+                                <strong>Starting Bid:</strong> R @auction.StartingBid.ToString("N2")
+                            </p>
+                            <a href="/Customer/AuctionDetails/@auction.Id" class="btn btn-gold w-100">View Auction →</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info text-center py-4">
+                    <i class="bi bi-info-circle fs-1"></i>
+                    <p class="mt-2 mb-0">No active auctions at the moment.</p>
+                    <small>Check back later for available auctions.</small>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+    }
+    .card {
+        transition: transform 0.2s;
+        border-radius: 12px;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+</style>

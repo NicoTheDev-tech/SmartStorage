@@ -1,0 +1,64 @@
+﻿@using SmartStorage.Core.Entities
+@{
+    ViewData["Title"] = "Delivery Schedule";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Delivery Schedule</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Schedule #</th>
+                            <th>Client</th>
+                            <th>Unit</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Driver</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.Deliveries != null)
+                        {
+                            foreach (var d in ViewBag.Deliveries)
+                            {
+                                <tr>
+                                    <td>@d.ScheduleNumber</td>
+                                    <td>@d.ClientFullName</td>
+                                    <td>@d.UnitNumber</td>
+                                    <td>@d.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                    <td>@d.DeliveryType</td>
+                                    <td>@d.AssignedDriverFullName</td>
+                                    <td>
+                                        @if (d.Status.ToString() == "Pending")
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
+                                        }
+                                        else if (d.Status.ToString() == "Confirmed")
+                                        {
+                                            <span class="badge bg-info">In Progress</span>
+                                        }
+                                        else if (d.Status.ToString() == "Completed")
+                                        {
+                                            <span class="badge bg-success">Completed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

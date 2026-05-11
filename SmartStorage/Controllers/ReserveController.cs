@@ -62,7 +62,8 @@ namespace SmartStorage.Controllers
             return View(viewModel);
         }
 
-        public async Task<IActionResult> GetAvailableUnits(string storageType, string size, string location, decimal? minPrice, decimal? maxPrice, bool climateControlled)
+        // UPDATED: Removed minPrice and maxPrice parameters
+        public async Task<IActionResult> GetAvailableUnits(string storageType, string size, string location, bool climateControlled)
         {
             var units = await _context.StorageUnits.Where(u => u.IsActive).ToListAsync();
             var result = new System.Collections.Generic.List<AvailableUnit>();
@@ -80,8 +81,6 @@ namespace SmartStorage.Controllers
 
                 if (!string.IsNullOrEmpty(size) && sizeCategory != size) continue;
                 if (!string.IsNullOrEmpty(location) && !string.IsNullOrEmpty(unit.Location) && !unit.Location.Contains(location)) continue;
-                if (minPrice.HasValue && unit.MonthlyRate < minPrice.Value) continue;
-                if (maxPrice.HasValue && unit.MonthlyRate > maxPrice.Value) continue;
                 if (climateControlled && (unit.ClimateControl != "Basic" && unit.ClimateControl != "Premium")) continue;
 
                 result.Add(new AvailableUnit
@@ -147,7 +146,17 @@ namespace SmartStorage.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var booking = await _bookingService.CreateBooking(bookingDto, userId ?? string.Empty);
+                var bookingResponse = await _bookingService.CreateBooking(bookingDto, userId ?? string.Empty);
+
+                // Get the actual Booking entity from database to update its status
+                var bookingEntity = await _context.Bookings.FindAsync(bookingResponse.Id);
+
+                if (bookingEntity != null)
+                {
+                    // Set status to Pending (not Confirmed)
+                    bookingEntity.Status = BookingStatus.Pending;
+                    await _context.SaveChangesAsync();
+                }
 
                 bool emailSent = false;
 
@@ -156,44 +165,146 @@ namespace SmartStorage.Controllers
                     var emailService = HttpContext.RequestServices.GetRequiredService<IEmailService>();
                     var client = await _context.Clients.FirstOrDefaultAsync(c => c.UserId != null && c.UserId == userId);
 
-                    if (client != null && !string.IsNullOrEmpty(client.Email))
+                    if (client != null && !string.IsNullOrEmpty(client.Email) && bookingEntity != null)
                     {
-                        var bookingForEmail = new Booking
-                        {
-                            Id = booking.Id,
-                            BookingNumber = booking.BookingNumber,
-                            StartDate = booking.StartDate,
-                            EndDate = booking.EndDate,
-                            TotalAmount = booking.TotalAmount,
-                            Status = BookingStatus.Pending
-                        };
-
-                        await emailService.SendBookingConfirmationAsync(
-                            bookingForEmail,
-                            client.Email,
-                            client.FullName
-                        );
+                        await emailService.SendBookingPendingEmailAsync(bookingEntity, client.Email, client.FullName);
                         emailSent = true;
-                        _logger.LogInformation($"Booking confirmation email sent to {client.Email} for booking {booking.BookingNumber}");
+                        _logger.LogInformation($"Booking pending email sent to {client.Email} for booking {bookingResponse.BookingNumber}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send booking confirmation email");
+                    _logger.LogError(ex, "Failed to send booking pending email");
                 }
 
                 return Json(new
                 {
                     success = true,
-                    booking,
+                    booking = bookingResponse,
                     emailSent = emailSent,
-                    message = emailSent ? "✓ Booking confirmed! A confirmation email has been sent to your inbox." : "✓ Booking confirmed! (Email notification could not be sent, but your booking is saved.)"
+                    message = "✓ Booking created! Please review and sign your contract to complete payment."
                 });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, error = ex.Message });
             }
+        }
+
+        // NEW: Contract signing page
+        [HttpGet("Reserve/Contract/{bookingId}")]
+        public async Task<IActionResult> Contract(int bookingId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var booking = await _context.Bookings
+                .Include(b => b.StorageUnit)
+                .Include(b => b.Client)
+                .FirstOrDefaultAsync(b => b.Id == bookingId && b.Client.UserId == userId);
+
+            if (booking == null) return NotFound();
+
+            return View(booking);
+        }
+
+        [HttpPost("Reserve/SignContract")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SignContract(int bookingId, string signatureName)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, error = "User not logged in" });
+                }
+
+                var booking = await _context.Bookings
+                    .Include(b => b.Client)
+                    .Include(b => b.StorageUnit)
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    return Json(new { success = false, error = "Booking not found" });
+                }
+
+                // Verify the booking belongs to the logged-in user
+                if (booking.Client == null || booking.Client.UserId != userId)
+                {
+                    return Json(new { success = false, error = "You don't have permission to sign this contract" });
+                }
+
+                // Check if contract already exists
+                var existingContract = await _context.Contracts.FirstOrDefaultAsync(c => c.BookingId == bookingId);
+
+                if (existingContract == null)
+                {
+                    var contract = new Contract
+                    {
+                        ContractNumber = $"CT-{DateTime.Now:yyyyMMdd}-{bookingId}",
+                        BookingId = bookingId,
+                        ClientId = booking.ClientId,
+                        StartDate = booking.StartDate,
+                        EndDate = booking.EndDate,
+                        MonthlyRate = booking.StorageUnit?.MonthlyRate ?? 500,
+                        SecurityDeposit = 50,
+                        TotalContractValue = (booking.StorageUnit?.MonthlyRate ?? 500) * 3,
+                        TermsAndConditions = GetContractTerms(),
+                        SpecialConditions = "",
+                        Status = ContractStatus.PendingAcceptance,
+                        CreatedAt = DateTime.Now,
+                        AcceptedBy = signatureName,
+                        AcceptedAt = DateTime.Now
+                    };
+                    _context.Contracts.Add(contract);
+                    await _context.SaveChangesAsync();
+                }
+
+                return Json(new { success = true, bookingId = bookingId });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        private string GetContractTerms()
+        {
+            return @"
+SMARTSTORAGE STORAGE CONTRACT TERMS AND CONDITIONS
+
+1. STORAGE UNIT RENTAL
+   - The Customer agrees to rent the storage unit for the agreed period
+   - Monthly rental fees are payable in advance on the 1st of each month
+   - A 10% late fee will be applied to payments received after the 5th of the month
+
+2. SECURITY DEPOSIT
+   - A security deposit of R50 is required
+   - Deposit is refundable upon contract termination with 30 days written notice
+
+3. PROHIBITED ITEMS
+   - Hazardous materials, perishable goods, illegal substances, flammable materials
+
+4. ACCESS AND SECURITY
+   - 24/7 access with valid ID and access code
+   - Customer is responsible for their own locks and security
+
+5. CONTRACT EXTENSION
+   - Customer may request a contract extension at least 30 days prior to the contract end date
+
+6. DEFAULT AND ABANDONED PROPERTY
+   - Failure to pay rental fees for 30 consecutive days constitutes default
+   - After 60 days of non-payment, property may be sold to recover outstanding fees
+
+7. INSURANCE
+   - Customer is strongly advised to maintain comprehensive insurance for stored items
+   - SmartStorage is not liable for loss, damage, or theft of stored items
+
+8. TERMINATION
+   - 30 days written notice required for contract termination
+
+I have read, understood, and agree to the above terms and conditions.
+";
         }
 
         public async Task<IActionResult> Success(int id)

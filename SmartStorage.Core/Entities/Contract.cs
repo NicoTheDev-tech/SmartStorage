@@ -41,6 +41,8 @@ namespace SmartStorage.Core.Entities
         Active = 3,
         Expired = 4,
         Terminated = 5,
-        Cancelled = 6
+        Cancelled = 6,
+        Extended = 4,  // Add this line
+        Pending = 5
     }
 }

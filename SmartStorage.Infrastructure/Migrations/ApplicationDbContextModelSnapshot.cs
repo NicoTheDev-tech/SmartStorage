@@ -406,46 +406,35 @@ namespace SmartStorage.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IdNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PreferredName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("IdNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
 
                     b.HasIndex("Phone")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Phone] IS NOT NULL");
 
                     b.ToTable("Clients");
                 });
@@ -477,7 +466,6 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ContractNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -495,7 +483,6 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("SpecialConditions")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
@@ -505,7 +492,6 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("TermsAndConditions")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalContractValue")
@@ -519,9 +505,58 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.HasIndex("ClientId");
 
                     b.HasIndex("ContractNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[ContractNumber] IS NOT NULL");
 
                     b.ToTable("Contracts");
+                });
+
+            modelBuilder.Entity("SmartStorage.Core.Entities.ContractExtension", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ApprovedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CurrentEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ProposedNewEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RequestedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RequestedDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.ToTable("ContractExtensions");
                 });
 
             modelBuilder.Entity("SmartStorage.Core.Entities.DeliverySchedule", b =>
@@ -557,10 +592,12 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DeliveryAddress")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DeliveryType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DriverId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("EstimatedWeight")
@@ -568,18 +605,15 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("GoodsDescription")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ItemCount")
                         .HasColumnType("int");
 
                     b.Property<string>("PickupAddress")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ScheduleNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("ScheduledDate")
@@ -595,7 +629,6 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("TimeSlot")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -606,8 +639,11 @@ namespace SmartStorage.Infrastructure.Migrations
 
                     b.HasIndex("ClientId");
 
+                    b.HasIndex("DriverId");
+
                     b.HasIndex("ScheduleNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[ScheduleNumber] IS NOT NULL");
 
                     b.ToTable("DeliverySchedules");
                 });
@@ -623,8 +659,20 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.Property<int?>("AssignedVehicleId")
                         .HasColumnType("int");
 
+                    b.Property<int>("DriverStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("HireDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
@@ -635,7 +683,19 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("TerminationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VehicleAssigned")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -649,6 +709,46 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasFilter("[LicenseNumber] IS NOT NULL");
 
                     b.ToTable("Drivers");
+                });
+
+            modelBuilder.Entity("SmartStorage.Core.Entities.GoodsIntake", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConditionNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DeliveryScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("IntakeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StorageLocation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WarehouseStaffId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("DeliveryScheduleId");
+
+                    b.HasIndex("WarehouseStaffId");
+
+                    b.ToTable("GoodsIntakes");
                 });
 
             modelBuilder.Entity("SmartStorage.Core.Entities.Invoice", b =>
@@ -696,7 +796,6 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("InvoiceNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Notes")
@@ -730,7 +829,8 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.HasIndex("ClientId");
 
                     b.HasIndex("InvoiceNumber")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[InvoiceNumber] IS NOT NULL");
 
                     b.ToTable("Invoices");
                 });
@@ -820,6 +920,46 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("SmartStorage.Core.Entities.Staff", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("HireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("TerminationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Staff");
+                });
+
             modelBuilder.Entity("SmartStorage.Core.Entities.StorageUnit", b =>
                 {
                     b.Property<int>("Id")
@@ -829,29 +969,37 @@ namespace SmartStorage.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClimateControl")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("MonthlyRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Size")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UnitNumber")
-                        .HasColumnType("nvarchar(450)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UnitNumber")
-                        .IsUnique()
-                        .HasFilter("[UnitNumber] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("StorageUnits");
 
@@ -860,6 +1008,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         {
                             Id = 1,
                             ClimateControl = "None",
+                            Description = "",
                             IsActive = true,
                             Location = "Building A",
                             MonthlyRate = 100m,
@@ -870,6 +1019,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         {
                             Id = 2,
                             ClimateControl = "Basic",
+                            Description = "",
                             IsActive = true,
                             Location = "Building A",
                             MonthlyRate = 180m,
@@ -880,6 +1030,7 @@ namespace SmartStorage.Infrastructure.Migrations
                         {
                             Id = 3,
                             ClimateControl = "Premium",
+                            Description = "",
                             IsActive = true,
                             Location = "Building B",
                             MonthlyRate = 350m,
@@ -928,6 +1079,52 @@ namespace SmartStorage.Infrastructure.Migrations
                         .HasFilter("[RegistrationNumber] IS NOT NULL");
 
                     b.ToTable("Vehicles");
+                });
+
+            modelBuilder.Entity("SmartStorage.Core.Entities.WarehouseStaff", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedZone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("HireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("TerminationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WarehouseRole")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WarehouseStaff");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1065,6 +1262,17 @@ namespace SmartStorage.Infrastructure.Migrations
                     b.Navigation("Client");
                 });
 
+            modelBuilder.Entity("SmartStorage.Core.Entities.ContractExtension", b =>
+                {
+                    b.HasOne("SmartStorage.Core.Entities.Contract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contract");
+                });
+
             modelBuilder.Entity("SmartStorage.Core.Entities.DeliverySchedule", b =>
                 {
                     b.HasOne("SmartStorage.Core.Entities.Driver", "AssignedDriver")
@@ -1084,6 +1292,10 @@ namespace SmartStorage.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SmartStorage.Core.Entities.Driver", null)
+                        .WithMany("AssignedDeliveries")
+                        .HasForeignKey("DriverId");
+
                     b.Navigation("AssignedDriver");
 
                     b.Navigation("Booking");
@@ -1094,11 +1306,38 @@ namespace SmartStorage.Infrastructure.Migrations
             modelBuilder.Entity("SmartStorage.Core.Entities.Driver", b =>
                 {
                     b.HasOne("SmartStorage.Core.Entities.Vehicle", "AssignedVehicle")
-                        .WithOne()
+                        .WithOne("Driver")
                         .HasForeignKey("SmartStorage.Core.Entities.Driver", "AssignedVehicleId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("AssignedVehicle");
+                });
+
+            modelBuilder.Entity("SmartStorage.Core.Entities.GoodsIntake", b =>
+                {
+                    b.HasOne("SmartStorage.Core.Entities.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SmartStorage.Core.Entities.DeliverySchedule", "DeliverySchedule")
+                        .WithMany()
+                        .HasForeignKey("DeliveryScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SmartStorage.Core.Entities.WarehouseStaff", "WarehouseStaff")
+                        .WithMany("ProcessedIntakes")
+                        .HasForeignKey("WarehouseStaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("DeliverySchedule");
+
+                    b.Navigation("WarehouseStaff");
                 });
 
             modelBuilder.Entity("SmartStorage.Core.Entities.Invoice", b =>
@@ -1123,7 +1362,7 @@ namespace SmartStorage.Infrastructure.Migrations
             modelBuilder.Entity("SmartStorage.Core.Entities.MaintenanceRecord", b =>
                 {
                     b.HasOne("SmartStorage.Core.Entities.Vehicle", "Vehicle")
-                        .WithMany("MaintenanceRecords")
+                        .WithMany()
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1167,6 +1406,8 @@ namespace SmartStorage.Infrastructure.Migrations
 
             modelBuilder.Entity("SmartStorage.Core.Entities.Driver", b =>
                 {
+                    b.Navigation("AssignedDeliveries");
+
                     b.Navigation("Cartages");
                 });
 
@@ -1177,7 +1418,12 @@ namespace SmartStorage.Infrastructure.Migrations
 
             modelBuilder.Entity("SmartStorage.Core.Entities.Vehicle", b =>
                 {
-                    b.Navigation("MaintenanceRecords");
+                    b.Navigation("Driver");
+                });
+
+            modelBuilder.Entity("SmartStorage.Core.Entities.WarehouseStaff", b =>
+                {
+                    b.Navigation("ProcessedIntakes");
                 });
 #pragma warning restore 612, 618
         }

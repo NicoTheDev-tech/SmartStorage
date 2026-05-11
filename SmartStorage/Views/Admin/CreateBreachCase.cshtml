@@ -1,0 +1,34 @@
+﻿@{
+    ViewData["Title"] = "Create Breach Case";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h3>Create Breach Case</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label>Customer Name</label>
+                    <input name="customerName" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label>Contract ID</label>
+                    <input name="contractId" type="number" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label>Breach Reason</label>
+                    <textarea name="breachReason" class="form-control" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label>Outstanding Amount</label>
+                    <input name="outstandingAmount" type="number" step="0.01" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary">Create Breach Case</button>
+                <a href="/Admin/BreachCases" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

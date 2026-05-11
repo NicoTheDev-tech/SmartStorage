@@ -17,17 +17,13 @@ namespace SmartStorage.ViewModels
         [Display(Name = "Email Address")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Phone number is required")]
         [Phone(ErrorMessage = "Invalid phone number")]
         [Display(Name = "Phone Number")]
         public string Phone { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "ID/Passport number is required")]
-        [Display(Name = "ID/Passport Number")]
-        public string IdNumber { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Address is required")]
-        [Display(Name = "Physical Address")]
+        [Display(Name = "Address")]
         public string Address { get; set; } = string.Empty;
+
+        // IdNumber removed - no longer needed
     }
 }

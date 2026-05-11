@@ -40,13 +40,32 @@ namespace SmartStorage.Core.Entities
         public string? SpecialInstructions { get; set; }
         public string? ContactPerson { get; set; }
         public string? ContactPhone { get; set; }
+        public string? Route { get; set; }
+        public string? AdminNotes { get; set; }
+
+        // Preparation
+        public DateTime? PreparedAt { get; set; }
+        public string? PreparedBy { get; set; }
+        public string? PreparationNotes { get; set; }
+
+        // Delivery Confirmation
+        public string? ProofOfDelivery { get; set; }
+        public string? CustomerSignature { get; set; }
+        public string? DriverNotes { get; set; }
+
+        // Rating & Feedback
+        public bool? IsRated { get; set; }
+        public int? Rating { get; set; }  // 1-5 stars
+        public string? CustomerFeedback { get; set; }
+        public string? IssueReported { get; set; }
+        public DateTime? RatedAt { get; set; }
     }
 
     public enum DeliveryType
     {
-        Pickup = 0,   // Customer picks up from facility
-        Dropoff = 1,  // Customer drops off at facility
-        Collection = 2 // SmartStorage collects from customer
+        Pickup = 0,      // Customer picks up from facility
+        Dropoff = 1,     // Customer drops off at facility
+        Collection = 2   // SmartStorage collects from customer
     }
 
     public enum ScheduleStatus
@@ -56,6 +75,7 @@ namespace SmartStorage.Core.Entities
         InProgress = 2,
         Completed = 3,
         Cancelled = 4,
-        Rescheduled = 5
+        Rescheduled = 5,
+        Disputed = 6      // ✅ Added missing number
     }
 }
