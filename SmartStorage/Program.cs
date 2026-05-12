@@ -13,19 +13,29 @@ builder.Services.AddControllersWithViews();
 
 // Database Context - Environment specific
 var connectionString = string.Empty;
+
 if (builder.Environment.IsProduction())
 {
-    connectionString = builder.Configuration.GetConnectionString("Azure_DB_Connection");
+    connectionString = builder.Configuration.GetConnectionString("AzureConnection");
     Console.WriteLine("🔵 Using AZURE SQL Database");
+
+    // Add retry for Azure to handle transient failures
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(connectionString, sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }));
 }
 else
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     Console.WriteLine("🟢 Using LOCAL Database");
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(connectionString));
 }
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
 
 // Add Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
