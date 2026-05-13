@@ -11,31 +11,22 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services
 builder.Services.AddControllersWithViews();
 
-// Database Context - Environment specific
-var connectionString = string.Empty;
+// Database Context - Check Azure environment variable first
+var connectionString = Environment.GetEnvironmentVariable("AZURE_DB_CONNECTION");
 
-if (builder.Environment.IsProduction())
-{
-    connectionString = builder.Configuration.GetConnectionString("AzureConnection");
-    Console.WriteLine("🔵 Using AZURE SQL Database");
-
-    // Add retry for Azure to handle transient failures
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(connectionString, sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorNumbersToAdd: null);
-        }));
-}
-else
+if (string.IsNullOrEmpty(connectionString))
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    Console.WriteLine("🟢 Using LOCAL Database");
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(connectionString));
 }
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+    }));
 
 // Add Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -107,22 +98,12 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// ========== DATABASE MIGRATION FOR AZURE ==========
+// ========== DATABASE MIGRATION ==========
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    if (app.Environment.IsProduction())
-    {
-        // For Azure: Apply migrations automatically
-        await dbContext.Database.MigrateAsync();
-        Console.WriteLine("✅ Azure database migrations applied");
-    }
-    else
-    {
-        await dbContext.Database.EnsureCreatedAsync();
-        Console.WriteLine("✅ Local database created/ensured");
-    }
+    await dbContext.Database.MigrateAsync();
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
@@ -133,7 +114,6 @@ using (var scope = app.Services.CreateScope())
         if (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole(role));
-            Console.WriteLine($"✅ Created role: {role}");
         }
     }
 
@@ -149,21 +129,11 @@ using (var scope = app.Services.CreateScope())
         if (createResult.Succeeded)
         {
             await userManager.AddToRoleAsync(admin, "Admin");
-            Console.WriteLine("✅ Admin account created: admin@gmail.com / Admin@123!");
-        }
-        else
-        {
-            Console.WriteLine("❌ Failed to create admin account:");
-            foreach (var error in createResult.Errors)
-            {
-                Console.WriteLine($"   - {error.Description}");
-            }
         }
     }
     else if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
     {
         await userManager.AddToRoleAsync(adminUser, "Admin");
-        Console.WriteLine("✅ Admin role added to existing admin account");
     }
 
     if (adminUser != null)
@@ -173,7 +143,6 @@ using (var scope = app.Services.CreateScope())
         {
             dbContext.Clients.Remove(existingClient);
             await dbContext.SaveChangesAsync();
-            Console.WriteLine("✅ Removed client record from admin user");
         }
     }
 }
