@@ -176,7 +176,7 @@ namespace SmartStorage.Controllers
                         PreferredName = model.PreferredName,
                         Email = model.Email,
                         RegistrationDate = DateTime.Now,
-                        Phone = string.Empty,
+                        Phone = null,
                         Address = string.Empty,
                     };
 

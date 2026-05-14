@@ -10,7 +10,7 @@ namespace SmartStorage.Core.Entities
         public string FullName { get; set; } = string.Empty;
         public string PreferredName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;  // Add this
+        public string? Phone { get; set; } = null;
         public string Address { get; set; } = string.Empty;  // Add this
         public DateTime RegistrationDate { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
