@@ -1,0 +1,141 @@
+﻿@{
+    ViewData["Title"] = "Reports & Analytics";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Reports & Analytics</h1>
+            <p class="text-muted">View business insights and performance metrics</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-currency-dollar fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">R @(ViewBag.TotalRevenue != null ? ((decimal)ViewBag.TotalRevenue).ToString("N0") : "0")</h3>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">R @(ViewBag.MonthlyRevenue != null ? ((decimal)ViewBag.MonthlyRevenue).ToString("N0") : "0")</h3>
+                    <p class="text-muted mb-0">Monthly Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-bookmark-fill fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@(ViewBag.TotalBookings ?? 0)</h3>
+                    <p class="text-muted mb-0">Total Bookings</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-text fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@(ViewBag.ActiveContracts ?? 0)</h3>
+                    <p class="text-muted mb-0">Active Contracts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@(ViewBag.TotalUsers ?? 0)</h3>
+                    <p class="text-muted mb-0">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@(ViewBag.AvailableUnits ?? 0)</h3>
+                    <p class="text-muted mb-0">Available Units</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-receipt text-gold"></i> Payment Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <p class="text-muted mb-1">Completed Payments</p>
+                                <h4 class="text-success mb-0">R @(ViewBag.CompletedPayments != null ? ((decimal)ViewBag.CompletedPayments).ToString("N0") : "0")</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-center p-3 bg-light rounded">
+                                <p class="text-muted mb-1">Pending Payments</p>
+                                <h4 class="text-warning mb-0">R @(ViewBag.PendingPayments != null ? ((decimal)ViewBag.PendingPayments).ToString("N0") : "0")</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Status -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-truck text-gold"></i> Delivery Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3 bg-light rounded">
+                                <p class="text-muted mb-1">Pending</p>
+                                <h4 class="text-warning mb-0">@(ViewBag.PendingDeliveries ?? 0)</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 bg-light rounded">
+                                <p class="text-muted mb-1">Confirmed</p>
+                                <h4 class="text-info mb-0">@(ViewBag.ConfirmedDeliveries ?? 0)</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 bg-light rounded">
+                                <p class="text-muted mb-1">Completed</p>
+                                <h4 class="text-success mb-0">@(ViewBag.CompletedDeliveries ?? 0)</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+</style>

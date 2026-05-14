@@ -1,0 +1,81 @@
+﻿@using SmartStorage.Core.Entities
+@model SmartStorage.Core.Entities.DeliverySchedule
+@{
+    ViewData["Title"] = "Execute Delivery";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-dark text-white text-center rounded-top-4 py-4">
+                    <i class="bi bi-truck fs-1"></i>
+                    <h3 class="mb-0 mt-2">Execute Delivery</h3>
+                    <p class="text-gold mt-2 mb-0">Complete the delivery process</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h5>Job Details</h5>
+                        <hr />
+                        <p><strong>Schedule #:</strong> @Model.ScheduleNumber</p>
+                        <p><strong>Client:</strong> @Model.Booking?.Client?.FullName</p>
+                        <p><strong>Unit:</strong> @Model.Booking?.StorageUnit?.UnitNumber</p>
+                        <p><strong>Delivery Type:</strong> @Model.DeliveryType</p>
+                        <p><strong>Scheduled Date:</strong> @Model.ScheduledDate.ToString("dd MMM yyyy")</p>
+                        <p><strong>Time Slot:</strong> @Model.TimeSlot</p>
+                        <p><strong>Address:</strong> @(Model.DeliveryType == DeliveryType.Dropoff ? Model.DeliveryAddress : Model.PickupAddress)</p>
+                        @if (!string.IsNullOrEmpty(Model.Route))
+                        {
+                            <p><strong>Route:</strong> @Model.Route</p>
+                        }
+                    </div>
+
+                    <form method="post" action="/Driver/ExecuteDelivery">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Proof of Delivery *</label>
+                            <textarea name="proofOfDelivery" class="form-control" rows="2" required placeholder="Describe what was delivered, quantity, condition..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Customer Signature / Confirmation *</label>
+                            <textarea name="customerSignature" class="form-control" rows="2" required placeholder="Customer name, signature, or confirmation number..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Driver Notes</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Any issues, delays, or special notes..."></textarea>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i>
+                            <small>By submitting, you confirm the delivery has been completed successfully.</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-gold w-100 py-2">Complete Delivery</button>
+                        <a href="/Driver/MyDeliveries" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+    }
+</style>

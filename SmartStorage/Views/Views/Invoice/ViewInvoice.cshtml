@@ -1,0 +1,153 @@
+﻿@{
+    var invoice = ViewBag.Invoice as SmartStorage.Core.Entities.Invoice;
+    var booking = invoice?.Booking;
+    var client = booking?.Client;
+    var storageUnit = booking?.StorageUnit;
+    ViewData["Title"] = "Invoice - " + invoice?.InvoiceNumber;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);">
+                    <i class="bi bi-receipt fs-1 text-white"></i>
+                    <h2 class="text-white mb-0">TAX INVOICE</h2>
+                    <p class="text-white-50 mb-0">@(invoice?.InvoiceNumber ?? "N/A")</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h3>SMARTSTORAGE</h3>
+                        <p class="text-muted">25 Umgeni Road, Durban Central, 4001</p>
+                        <p class="text-muted">Tel: +27 67 931 4668 | Email: snothithabangnicolas@gmail.com</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <strong class="text-gold">BILL TO</strong>
+                                <p class="mb-0">@(client?.FullName ?? "N/A")<br>@(client?.Email ?? "N/A")<br>@(client?.Phone ?? "N/A")<br>@(client?.Address ?? "N/A")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <strong class="text-gold">INVOICE DETAILS</strong>
+                                <p class="mb-0">
+                                    Invoice Date: @(invoice?.InvoiceDate.ToString("dd MMMM yyyy") ?? "N/A")<br>
+                                    Due Date: @(invoice?.DueDate.ToString("dd MMMM yyyy") ?? "N/A")<br>
+                                    Status: <span class="badge bg-@(invoice?.Status.ToString() == "Paid" ? "success" : "warning")">@invoice?.Status</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>Unit Price (R)</th>
+                                <th>Total (R)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    Storage Unit @(storageUnit?.UnitNumber ?? "N/A") (@(storageUnit?.Size ?? "N/A"))<br>
+                                    <small>Period: @(booking?.StartDate.ToString("dd MMM yyyy") ?? "N/A") - @(booking?.EndDate.ToString("dd MMM yyyy") ?? "N/A")</small>
+                                 </td>
+                                <td>1</td>
+                                <td>@(((invoice?.Amount ?? 0) - 75).ToString("F2"))</td>
+                                <td>@(((invoice?.Amount ?? 0) - 75).ToString("F2"))</td>
+                             </tr>
+                             <tr>
+                                <td>Admin Fee</td>
+                                <td>1</td>
+                                <td>25.00</td>
+                                <td>25.00</td>
+                             </tr>
+                             <tr>
+                                <td>Security Deposit (Refundable)</td>
+                                <td>1</td>
+                                <td>50.00</td>
+                                <td>50.00</td>
+                             </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                                <td class="fw-bold">R @(((invoice?.Amount ?? 0) - 75).ToString("F2"))</td>
+                             </tr>
+                             <tr>
+                                <td colspan="3" class="text-end fw-bold">Admin Fee:</td>
+                                <td class="fw-bold">R 25.00</td>
+                             </tr>
+                             <tr>
+                                <td colspan="3" class="text-end fw-bold">Security Deposit:</td>
+                                <td class="fw-bold">R 50.00</td>
+                             </tr>
+                             <tr>
+                                <td colspan="3" class="text-end fw-bold text-gold">Total Due:</td>
+                                <td class="fw-bold text-gold">R @(invoice?.Amount.ToString("F2") ?? "0.00")</td>
+                             </tr>
+                             <tr>
+                                <td colspan="3" class="text-end fw-bold">Amount Paid:</td>
+                                <td class="fw-bold">R @(invoice?.AmountPaid.ToString("F2") ?? "0.00")</td>
+                             </tr>
+                             <tr>
+                                <td colspan="3" class="text-end fw-bold">Balance Due:</td>
+                                <td class="fw-bold">R @(invoice?.Balance.ToString("F2") ?? "0.00")</td>
+                             </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="text-center mt-4">
+                        <a href="/Customer/Invoices" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Invoices
+                        </a>
+                        <button class="btn btn-gold ms-2" onclick="window.print();">
+                            <i class="bi bi-printer"></i> Save as PDF / Print
+                        </button>
+                    </div>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <small class="text-muted">Thank you for choosing SmartStorage!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+        border-radius: 50px;
+        padding: 10px 25px;
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 10px 25px;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+    }
+    @@media print {
+        .btn, .btn-gold, .btn-outline-secondary, .card-footer {
+            display: none;
+        }
+        .card {
+            box-shadow: none;
+        }
+    }
+</style>

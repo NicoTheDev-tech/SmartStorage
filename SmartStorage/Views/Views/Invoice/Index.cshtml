@@ -1,0 +1,81 @@
+﻿@using SmartStorage.Core.Entities
+@model IEnumerable<SmartStorage.Core.Entities.Invoice>
+
+@{
+    ViewData["Title"] = "My Invoices";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">My Invoices</h3>
+            <p class="mb-0 small">View and pay your invoices</p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Date</th>
+                            <th>Due Date</th>
+                            <th>Amount</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var sortedInvoices = Model.OrderByDescending(i => i.InvoiceDate).ToList();
+                        }
+                        @foreach (var invoice in sortedInvoices)
+                        {
+                            int statusCode = (int)invoice.Status;
+                            <tr>
+                                <td><strong>@invoice.InvoiceNumber</strong></td>
+                                <td>@invoice.InvoiceDate.ToString("dd MMM yyyy")</td>
+                                <td>@invoice.DueDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-end">R @invoice.Amount.ToString("N2")</td>
+                                <td class="text-end">R @invoice.AmountPaid.ToString("N2")</td>
+                                <td class="text-end">R @invoice.Balance.ToString("N2")</td>
+                                <td>
+                                    @if (statusCode == 3)
+                                    {
+                                        <span class="badge bg-secondary px-3 py-2">Cancelled</span>
+                                    }
+                                    else if (statusCode == 1)
+                                    {
+                                        <span class="badge bg-success px-3 py-2">Paid</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning px-3 py-2">Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="/Invoice/Details/@invoice.Id" class="btn btn-sm btn-outline-primary">View</a>
+
+                                    @if (statusCode != 1 && statusCode != 3)
+                                    {
+                                        <a href="/Invoice/Pay/@invoice.BookingId" class="btn btn-sm btn-success">Pay Now</a>
+                                    }
+
+                                    @if (statusCode == 3)
+                                    {
+                                        <form asp-action="Delete" asp-route-id="@invoice.Id" method="post" style="display:inline-block">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this invoice?')">Delete</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

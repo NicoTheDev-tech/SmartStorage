@@ -1,0 +1,60 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Customer Ratings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-0">Customer Ratings & Feedback</h1>
+        <p class="text-muted">View all customer ratings from completed deliveries</p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Schedule #</th>
+                            <th>Customer</th>
+                            <th>Rating</th>
+                            <th>Feedback</th>
+                            <th>Issue Reported</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var rating in Model)
+                            {
+                                <tr>
+                                    <td>@rating.ScheduleNumber</td>
+                                    <td>@rating.CustomerName</td>
+                                    <td>
+                                        <span class="badge bg-gold text-dark">@rating.Rating ★</span>
+                                    </td>
+                                    <td>@(rating.CustomerFeedback ?? "No feedback")</td>
+                                    <td>@(rating.IssueReported ?? "No issues")</td>
+                                    <td>@rating.RatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="6" class="text-center py-4">No ratings yet</td</tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+    }
+</style>

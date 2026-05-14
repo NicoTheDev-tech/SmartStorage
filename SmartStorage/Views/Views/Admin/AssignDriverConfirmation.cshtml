@@ -1,0 +1,57 @@
+﻿@model SmartStorage.Core.Entities.DeliverySchedule
+@{
+    ViewData["Title"] = "Driver Assignment Confirmation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg rounded-4 text-center">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="mb-3">Driver Assigned Successfully!</h2>
+                    <p class="text-muted mb-4">The transport job has been assigned to the driver.</p>
+                    
+                    <div class="alert alert-info text-start">
+                        <h5>Job Summary</h5>
+                        <hr />
+                        <p><strong>Schedule #:</strong> @Model.ScheduleNumber</p>
+                        <p><strong>Client:</strong> @Model.Booking?.Client?.FullName</p>
+                        <p><strong>Driver:</strong> @Model.AssignedDriver?.FullName</p>
+                        <p><strong>Vehicle:</strong> @Model.AssignedDriver?.VehicleAssigned</p>
+                        <p><strong>Scheduled Date:</strong> @Model.ScheduledDate.ToString("dd MMM yyyy")</p>
+                        <p><strong>Time Slot:</strong> @Model.TimeSlot</p>
+                        <p><strong>Status:</strong> <span class="badge bg-info">In Progress</span></p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="/Admin/ScheduleTransport" class="btn btn-outline-gold">Schedule Another Job</a>
+                        <a href="/Admin/AllAuctions" class="btn btn-gold">Go to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        padding: 10px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+</style>s

@@ -1,0 +1,44 @@
+﻿@model IEnumerable<SmartStorage.Core.DTOs.BookingResponseDto>
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<div class="container mt-4">
+    <h2>My Bookings</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            You don't have any bookings yet.
+            <a asp-action="Index" class="alert-link">Reserve a storage unit</a> to get started.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var booking in Model)
+            {
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Booking #@booking.BookingNumber</strong>
+                            <span class="badge bg-@(booking.Status == "Confirmed" ? "success" : "warning") float-end">
+                                @booking.Status
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Unit:</strong> @booking.UnitNumber</p>
+                            <p><strong>Dates:</strong> @booking.StartDate.ToShortDateString() - @booking.EndDate.ToShortDateString()</p>
+                            <p><strong>Total:</strong> $@booking.TotalAmount</p>
+                            <p><strong>Paid:</strong> $@booking.AmountPaid</p>
+                            <p><strong>Balance:</strong> $@booking.Balance</p>
+                        </div>
+                        <div class="card-footer">
+                            <a asp-action="Success" asp-route-id="@booking.Id" class="btn btn-sm btn-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,100 @@
+﻿@model SmartStorage.Core.Entities.Contract
+@{
+    ViewData["Title"] = "Request Contract Extension";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-dark text-white text-center rounded-top-4 py-4">
+                    <i class="bi bi-calendar-plus fs-1"></i>
+                    <h3 class="mb-0 mt-2">Contract Extension</h3>
+                    <p class="text-gold mt-2 mb-0">Extend your storage contract</p>
+                </div>
+                <div class="card-body p-4">
+                    @if (ViewBag.Contract != null)
+                    {
+                        <div class="alert alert-info">
+                            <strong>Current Contract:</strong> @ViewBag.Contract.ContractNumber<br />
+                            <strong>Unit:</strong> @ViewBag.Contract.Unit?.UnitNumber
+                            <strong>Current End Date:</strong> @ViewBag.Contract.EndDate.ToString("dd MMM yyyy")
+                        </div>
+                    }
+
+                    <form asp-action="RequestExtension" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="contractId" value="@ViewBag.Contract?.Id" />
+
+                        <div class="form-floating mb-3">
+                            <input type="number" name="requestedDays" id="requestedDays" class="form-control" min="30" max="365" step="30" required />
+                            <label for="requestedDays"><i class="bi bi-calendar-week me-1"></i> Extension Days (30-365)</label>
+                            <div class="form-text">Minimum 30 days, maximum 365 days</div>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <textarea name="reason" id="reason" class="form-control" style="height: 100px" placeholder="Reason for extension" required></textarea>
+                            <label for="reason"><i class="bi bi-chat-text me-1"></i> Reason for Extension</label>
+                        </div>
+
+                        <div id="preview" class="alert alert-secondary mb-3" style="display: none;">
+                            <strong>Preview:</strong><br />
+                            New end date will be: <span id="newEndDate"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold w-100 py-3">
+                            <i class="bi bi-send-check me-2"></i> Submit Extension Request
+                        </button>
+
+                        <hr class="my-4" />
+
+                        <p class="text-center mb-0">
+                            <a asp-action="MyContracts" class="text-decoration-none" style="color: #D4AF37;">
+                                <i class="bi bi-arrow-left"></i> Back to Contracts
+                            </a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('requestedDays').addEventListener('change', function() {
+        var days = parseInt(this.value);
+        if (days > 0) {
+            var currentEndDate = new Date('@ViewBag.Contract?.EndDate.ToString("yyyy-MM-dd")');
+            var newDate = new Date(currentEndDate);
+            newDate.setDate(currentEndDate.getDate() + days);
+            
+            document.getElementById('newEndDate').innerText = newDate.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+            document.getElementById('preview').style.display = 'block';
+        } else {
+            document.getElementById('preview').style.display = 'none';
+        }
+    });
+</script>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        color: #1A1A1A;
+    }
+    .text-gold {
+        color: #D4AF37;
+    }
+</style>

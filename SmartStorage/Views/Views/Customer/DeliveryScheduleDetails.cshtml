@@ -1,0 +1,186 @@
+﻿@model SmartStorage.Core.DTOs.DeliveryScheduleResponseDto
+@{
+    ViewData["Title"] = "Delivery Schedule Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <i class="bi bi-truck fs-1 text-white"></i>
+                    <h3 class="text-white mb-0 mt-2">Delivery Schedule Details</h3>
+                    <p class="text-white-50 mb-0">@Model.ScheduleNumber</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Status Badge -->
+                    <div class="text-center mb-4">
+                        @{
+                            var statusClass = Model.Status switch
+                            {
+                                "Pending" => "warning",
+                                "Confirmed" => "info",
+                                "Completed" => "success",
+                                "Cancelled" => "danger",
+                                _ => "secondary"
+                            };
+                        }
+                        <span class="badge bg-@statusClass px-3 py-2 fs-6">@Model.Status</span>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-box"></i> Storage Details</h6>
+                                <p class="mb-1"><strong>Unit Number:</strong> @Model.UnitNumber</p>
+                                <p class="mb-0"><strong>Booking Reference:</strong> @Model.BookingNumber</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-calendar"></i> Schedule Details</h6>
+                                <p class="mb-1"><strong>Type:</strong> @Model.DeliveryType</p>
+                                <p class="mb-1"><strong>Date:</strong> @Model.ScheduledDate.ToString("dddd, dd MMMM yyyy")</p>
+                                <p class="mb-0"><strong>Time Slot:</strong> @Model.TimeSlot</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-geo-alt"></i> Address Details</h6>
+                                <p class="mb-1"><strong>Pickup Address:</strong> @Model.PickupAddress</p>
+                                <p class="mb-0"><strong>Delivery Address:</strong> @Model.DeliveryAddress</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-box-seam"></i> Goods Details</h6>
+                                <p class="mb-1"><strong>Description:</strong> @Model.GoodsDescription</p>
+                                <p class="mb-1"><strong>Item Count:</strong> @Model.ItemCount items</p>
+                                <p class="mb-0"><strong>Estimated Weight:</strong> @Model.EstimatedWeight kg</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="border p-3 rounded-3 bg-light">
+                                <h6 class="text-gold mb-3"><i class="bi bi-person"></i> Contact Information</h6>
+                                <p class="mb-1"><strong>Contact Person:</strong> @(Model.ContactPerson ?? "Not provided")</p>
+                                <p class="mb-0"><strong>Contact Phone:</strong> @(Model.ContactPhone ?? "Not provided")</p>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.SpecialInstructions))
+                        {
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Special Instructions:</strong> @Model.SpecialInstructions
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="row text-muted small">
+                            <div class="col-md-6">
+                                <i class="bi bi-calendar-plus"></i> Created: @Model.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                            </div>
+                            @if (Model.ConfirmedAt.HasValue)
+                            {
+                                <div class="col-md-6">
+                                    <i class="bi bi-check-circle"></i> Confirmed: @Model.ConfirmedAt.Value.ToString("dd MMM yyyy HH:mm")
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 pb-4 text-center">
+                    <a href="/Customer/DeliverySchedule" class="btn btn-outline-gold">
+                        <i class="bi bi-arrow-left"></i> Back to Delivery Schedule
+                    </a>
+                    @if (Model.CanReschedule && Model.Status != "Completed")
+                    {
+                        <a href="/Customer/RescheduleDelivery/@Model.Id" class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-calendar"></i> Reschedule
+                        </a>
+                    }
+                    @if (Model.CanSchedule && Model.Status != "Completed")
+                    {
+                        <button type="button" class="btn btn-outline-danger ms-2" onclick="showCancelModal(@Model.Id)">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Delivery
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-calendar-x fs-1 text-danger mb-3 d-block"></i>
+                <h5 class="mb-2">Are you sure?</h5>
+                <p class="text-muted mb-0">Do you really want to cancel this delivery schedule?</p>
+                <p class="text-muted small mt-2">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> No, Keep It
+                </button>
+                <button type="button" class="btn btn-danger px-4" id="confirmCancelBtn">
+                    <i class="bi bi-check-circle"></i> Yes, Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="cancelForm" asp-action="CancelDeliverySchedule" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="cancelScheduleId" name="id" />
+</form>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 8px 20px;
+    }
+    .btn-outline-gold:hover {
+        background: #D4AF37;
+        color: #2c2c2c;
+    }
+    .btn-outline-secondary {
+        border-radius: 50px;
+        padding: 8px 20px;
+    }
+    .btn-outline-danger {
+        border-radius: 50px;
+        padding: 8px 20px;
+    }
+</style>
+
+<script>
+    function showCancelModal(id) {
+        document.getElementById('cancelScheduleId').value = id;
+        var modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+        modal.show();
+    }
+
+    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+        document.getElementById('cancelForm').submit();
+    });
+</script>

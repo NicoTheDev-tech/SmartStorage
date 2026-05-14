@@ -1,0 +1,250 @@
+﻿@using SmartStorage.Core.DTOs
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+@using SmartStorage.Core.Entities
+@using SmartStorage.Infrastructure.Data
+@model SmartStorage.Core.DTOs.CustomerDashboardViewModel
+@inject IServiceProvider ServiceProvider
+
+@{
+    ViewData["Title"] = "Customer Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    var context = ServiceProvider.GetService<ApplicationDbContext>();
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var client = await context.Clients.FirstOrDefaultAsync(c => c.UserId == userId);
+    
+    var expiringCount = 0;
+    if (client != null)
+    {
+        expiringCount = await context.Contracts
+            .Where(c => c.ClientId == client.Id && 
+                   c.EndDate > DateTime.Now && 
+                   c.EndDate <= DateTime.Now.AddDays(7) &&
+                   c.Status != ContractStatus.Expired)
+            .CountAsync();
+    }
+}
+
+<div class="container py-4">
+    @if (expiringCount > 0)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>⚠️ URGENT!</strong> You have @expiringCount contract(s) expiring within 7 days!
+                    <a href="/Customer/ContractExpiry" class="alert-link">View Details</a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Welcome Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="mb-2" style="color: #000000;">👋 Welcome back, @Model.ClientPreferredName!</h1>
+                            <p class="mb-0" style="color: #000000; opacity: 0.8;">Here's an overview of your SmartStorage account</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <i class="bi bi-house-door" style="font-size: 4rem; color: #000000;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-bookmark-fill fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.ActiveBookings</h3>
+                    <p class="text-muted mb-0">Active Bookings</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-text fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.ActiveContracts</h3>
+                    <p class="text-muted mb-0">Active Contracts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-receipt fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalInvoices</h3>
+                    <p class="text-muted mb-0">Total Invoices</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-truck fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@Model.UpcomingDeliveries</h3>
+                    <p class="text-muted mb-0">Upcoming Deliveries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings & Invoices -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-journal-bookmark-fill text-gold"></i> Recent Bookings</h5>
+                        <a href="/Customer/MyBookings" class="btn btn-sm btn-outline-gold">View All</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentBookings != null && Model.RecentBookings.Any())
+                    {
+                        foreach (var booking in Model.RecentBookings)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">Unit @booking.UnitNumber</h6>
+                                        <p class="text-muted small mb-0">@booking.StartDate.ToString("dd MMM yyyy") - @booking.EndDate.ToString("dd MMM yyyy")</p>
+                                        @if (booking.Status == "Confirmed" || booking.Status == "Active")
+                                        {
+                                            <span class="badge bg-success mt-1">Active</span>
+                                        }
+                                        else if (booking.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning mt-1">Pending</span>
+                                        }
+                                    </div>
+                                    <div class="text-end">
+                                        <p class="fw-bold mb-0 text-gold">R 0.00</p>
+                                        <small class="text-muted">Total</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No active bookings</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-receipt text-gold"></i> Recent Invoices</h5>
+                        <a href="/Invoice" class="btn btn-sm btn-outline-gold">View All</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentInvoices != null && Model.RecentInvoices.Any())
+                    {
+                        foreach (var invoice in Model.RecentInvoices)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">@invoice.InvoiceNumber</h6>
+                                        <p class="text-muted small mb-0">Due: @invoice.DueDate.ToString("dd MMM yyyy")</p>
+                                        @if (invoice.Status.ToString() == "Paid")
+                                        {
+                                            <span class="badge bg-success mt-1">Paid</span>
+                                        }
+                                        else if (invoice.Status.ToString() == "Overdue")
+                                        {
+                                            <span class="badge bg-danger mt-1">Overdue</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning mt-1">Pending</span>
+                                        }
+                                    </div>
+                                    <div class="text-end">
+                                        <p class="fw-bold mb-0 text-gold">R @invoice.Amount.ToString("N0")</p>
+                                        @if (invoice.Status.ToString() != "Paid")
+                                        {
+                                            <a href="/Invoice/Pay/@invoice.BookingId" class="btn btn-sm btn-success mt-1">Pay</a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No pending invoices</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="mb-3"><i class="bi bi-lightning-charge text-gold"></i> Quick Actions</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <a href="/Reserve" class="btn btn-outline-gold w-100 py-2">
+                                <i class="bi bi-calendar-plus me-2"></i> New Booking
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="/Invoice" class="btn btn-outline-gold w-100 py-2">
+                                <i class="bi bi-credit-card me-2"></i> Pay Invoice
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="/Customer/DeliverySchedule" class="btn btn-outline-gold w-100 py-2">
+                                <i class="bi bi-truck me-2"></i> Schedule Delivery
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="/Customer/Profile" class="btn btn-outline-gold w-100 py-2">
+                                <i class="bi bi-person-gear me-2"></i> Update Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+    .btn-outline-gold {
+        color: #D4AF37;
+        border-color: #D4AF37;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        border-color: transparent;
+    }
+    .h-100 {
+        height: 100%;
+    }
+</style>

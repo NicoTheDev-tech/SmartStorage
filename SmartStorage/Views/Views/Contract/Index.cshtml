@@ -1,0 +1,104 @@
+﻿@model IEnumerable<SmartStorage.Core.DTOs.ContractResponseDto>
+@{
+    ViewData["Title"] = "My Contracts";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">My Contracts</h1>
+        <div class="gold-line mx-auto"></div>
+        <p class="text-muted mt-3">View and manage your storage contracts</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        @foreach (var contract in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card contract-card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pt-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="fw-bold mb-1">@contract.ContractNumber</h5>
+                                <p class="text-muted small mb-0">Unit @contract.UnitNumber</p>
+                            </div>
+                            @{
+                                var statusBadgeClass = contract.Status switch
+                                {
+                                    "Active" => "success",
+                                    "Accepted" => "info",
+                                    "PendingAcceptance" => "warning",
+                                    _ => "secondary"
+                                };
+                            }
+                            <span class="badge bg-@statusBadgeClass px-3 py-2">@contract.Status</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Period:</span>
+                                <span class="fw-semibold">@contract.DurationMonths months</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Monthly:</span>
+                                <span class="fw-semibold text-gold">R @contract.MonthlyRate.ToString("N0")</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Total Value:</span>
+                                <span class="fw-bold">R @contract.TotalContractValue.ToString("N0")</span>
+                            </div>
+                        </div>
+                        <div class="small text-muted">
+                            <i class="bi bi-calendar"></i> @contract.StartDate.ToString("dd MMM yyyy") - @contract.EndDate.ToString("dd MMM yyyy")
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 pb-4">
+                        <a href="/Contracts/View/@contract.Id" class="btn btn-outline-gold w-100">
+                            <i class="bi bi-eye"></i> View Contract
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-file-text fs-1 text-muted"></i>
+                <h4 class="text-muted mt-3">No contracts yet</h4>
+                <p class="text-muted">When you have active storage contracts, they will appear here.</p>
+                <a href="/Reserve" class="btn btn-gold mt-2">
+                    <i class="bi bi-box-seam"></i> Reserve a Unit
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .contract-card {
+        transition: all 0.3s ease;
+    }
+    .contract-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px rgba(0,0,0,0.1) !important;
+    }
+    .text-gold {
+        color: var(--gold);
+    }
+</style>

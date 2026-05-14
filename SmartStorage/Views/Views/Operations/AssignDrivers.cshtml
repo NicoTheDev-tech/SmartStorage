@@ -1,0 +1,131 @@
+﻿@using SmartStorage.Core.Entities
+@{
+    ViewData["Title"] = "Assign Drivers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Assign Drivers</h1>
+            <p class="text-muted">Assign delivery tasks to available drivers</p>
+        </div>
+        <a href="/Operations/Dashboard" class="btn btn-outline-gold">Back to Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+            <h5 class="mb-0"><i class="bi bi-truck text-gold"></i> Pending Deliveries</h5>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.PendingDeliveries != null && ViewBag.PendingDeliveries.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Schedule #</th>
+                                <th>Client</th>
+                                <th>Unit</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Assign Driver</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var delivery in ViewBag.PendingDeliveries)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@delivery.ScheduleNumber</td
+                                    <td>@(delivery.Booking?.Client?.FullName ?? "Unknown")</td
+                                    <td>@(delivery.Booking?.StorageUnit?.UnitNumber ?? "Unknown")</td
+                                    <td>@delivery.ScheduledDate.ToString("dd MMM yyyy")</td
+                                    <td>@delivery.DeliveryType</td
+                                    <td>
+                                        <select class="form-select form-select-sm driver-select" data-delivery-id="@delivery.Id">
+                                            <option value="">-- Select Driver --</option>
+                                            @if (ViewBag.Drivers != null)
+                                            {
+                                                foreach (var driver in ViewBag.Drivers)
+                                                {
+                                                    <option value="@driver.Id">@driver.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </td
+                                    <td>
+                                        <button class="btn btn-sm btn-gold assign-btn" data-delivery-id="@delivery.Id">Assign</button>
+                                    </td
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                    <p class="text-muted mt-2">No pending deliveries</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        color: #2c2c2c;
+    }
+    .btn-outline-gold {
+        border: 2px solid var(--gold);
+        color: var(--gold);
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        color: var(--charcoal);
+        border-color: transparent;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.assign-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const deliveryId = this.dataset.deliveryId;
+            const select = document.querySelector(`.driver-select[data-delivery-id="${deliveryId}"]`);
+            const driverId = select.value;
+            
+            if (driverId) {
+                fetch('/Operations/AssignDriver', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `deliveryId=${deliveryId}&driverId=${driverId}`
+                }).then(() => location.reload());
+            } else {
+                alert('Please select a driver');
+            }
+        });
+    });
+</script>

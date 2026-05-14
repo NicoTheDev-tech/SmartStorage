@@ -1,0 +1,131 @@
+﻿@{
+    ViewData["Title"] = "Driver Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="mb-2" style="color: #000000;">👋 Welcome, Driver!</h1>
+                            <p class="mb-0" style="color: #000000; opacity: 0.8;">Your deliveries and tasks</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <i class="bi bi-truck" style="font-size: 4rem; color: #000000;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history fs-1 text-warning"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.TodaysDeliveries?.Count</h3>
+                    <p class="text-muted mb-0">Today's Deliveries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar fs-1 text-info"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.UpcomingDeliveries?.Count</h3>
+                    <p class="text-muted mb-0">Upcoming</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.CompletedCount</h3>
+                    <p class="text-muted mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.DriverStatus</h3>
+                    <p class="text-muted mb-0">Status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Deliveries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-truck text-gold"></i> Today's Deliveries</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.TodaysDeliveries != null && ViewBag.TodaysDeliveries.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Schedule #</th>
+                                        <th>Client</th>
+                                        <th>Unit</th>
+                                        <th>Time</th>
+                                        <th>Type</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var delivery in ViewBag.TodaysDeliveries)
+                                    {
+                                        <tr>
+                                            <td>@delivery.ScheduleNumber</td
+                                            <td>@delivery.Booking?.Client?.FullName</td
+                                            <td>@delivery.Booking?.StorageUnit?.UnitNumber</td
+                                            <td>@delivery.TimeSlot</td
+                                            <td>@delivery.DeliveryType</td
+                                            <td>
+                                                <form asp-action="CompleteDelivery" asp-route-id="@delivery.Id" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-success">Complete</button>
+                                                </form>
+                                             </td
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No deliveries scheduled for today</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold { color: var(--gold); }
+    .btn-outline-gold {
+        border: 2px solid var(--gold);
+        color: var(--gold);
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        color: var(--charcoal);
+        border-color: transparent;
+    }
+</style>

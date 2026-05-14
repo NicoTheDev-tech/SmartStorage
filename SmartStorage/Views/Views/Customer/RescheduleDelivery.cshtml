@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "Reschedule Delivery";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var schedule = ViewBag.Schedule as SmartStorage.Core.Entities.DeliverySchedule;
+    var timeSlots = ViewBag.TimeSlots as List<string>;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);">
+                    <i class="bi bi-calendar fs-1 text-white"></i>
+                    <h3 class="text-white mb-0 mt-2">Reschedule Delivery</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <p class="mb-0"><strong>Current Schedule:</strong> @schedule?.ScheduledDate.ToString("dd MMM yyyy") at @schedule?.TimeSlot</p>
+                    </div>
+
+                    <form action="/Customer/RescheduleDelivery" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@schedule?.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label">New Date</label>
+                            <input type="date" name="newDate" class="form-control" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">New Time Slot</label>
+                            <select name="timeSlot" class="form-select" required>
+                                <option value="">Select time slot</option>
+                                @if (timeSlots != null)
+                                {
+                                    foreach (var slot in timeSlots)
+                                    {
+                                        <option value="@slot">@slot</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-gold">Confirm Reschedule</button>
+                            <a href="/Customer/DeliverySchedule" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #2c2c2c;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+        color: #2c2c2c;
+    }
+</style>

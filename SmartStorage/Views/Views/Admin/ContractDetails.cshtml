@@ -1,0 +1,67 @@
+﻿@using SmartStorage.Core.Entities
+@model Contract
+
+@{
+    ViewData["Title"] = "Contract Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Contract Details</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Contract Number:</strong> @Model.ContractNumber</p>
+                    <p><strong>Client:</strong> @(Model.Booking?.Client?.FullName ?? "N/A")</p>
+                    <p><strong>Unit:</strong> @(Model.Booking?.StorageUnit?.UnitNumber ?? "N/A")</p>
+                    <p><strong>Start Date:</strong> @Model.StartDate.ToString("dd MMM yyyy")</p>
+                    <p><strong>End Date:</strong> @Model.EndDate.ToString("dd MMM yyyy")</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Monthly Rate:</strong> R @Model.MonthlyRate.ToString("N2")</p>
+                    <p><strong>Security Deposit:</strong> R @Model.SecurityDeposit.ToString("N2")</p>
+                    <p><strong>Total Value:</strong> R @Model.TotalContractValue.ToString("N2")</p>
+                    <p><strong>Status:</strong> 
+                        @if (Model.Status == ContractStatus.Active)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else if (Model.Status == ContractStatus.Accepted)
+                        {
+                            <span class="badge bg-info">Accepted</span>
+                        }
+                        else if (Model.Status == ContractStatus.PendingAcceptance)
+                        {
+                            <span class="badge bg-warning">Pending</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">@Model.Status</span>
+                        }
+                    </p>
+                </div>
+            </div>
+            <hr />
+            <div class="mt-3">
+                <a href="/Admin/Contracts" class="btn btn-secondary">Back to Contracts</a>
+                @if (Model.Status == ContractStatus.PendingAcceptance)
+                {
+                    <form asp-action="ApproveContract" asp-route-id="@Model.Id" method="post" style="display:inline-block">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                }
+                @if (Model.Status == ContractStatus.Accepted)
+                {
+                    <form asp-action="ActivateContract" asp-route-id="@Model.Id" method="post" style="display:inline-block">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary">Activate</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

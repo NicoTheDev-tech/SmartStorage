@@ -1,0 +1,132 @@
+﻿@using SmartStorage.Core.Entities
+@model SmartStorage.Core.Entities.DeliverySchedule
+@{
+    ViewData["Title"] = "Rate Delivery Service";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-dark text-white text-center rounded-top-4 py-4">
+                    <i class="bi bi-star-fill fs-1 text-gold"></i>
+                    <h3 class="mb-0 mt-2">Rate Your Delivery Service</h3>
+                    <p class="text-gold mt-2 mb-0">Help us improve our service</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h5>Delivery Details</h5>
+                        <hr />
+                        <p><strong>Schedule #:</strong> @Model.ScheduleNumber</p>
+                        <p><strong>Delivery Date:</strong> @Model.ScheduledDate.ToString("dd MMM yyyy")</p>
+                        <p><strong>Delivery Type:</strong> @Model.DeliveryType</p>
+                    </div>
+
+                    <form method="post" action="/Customer/RateDelivery">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="scheduleId" value="@Model.Id" />
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Rating *</label>
+                            <div class="rating">
+                                <div class="d-flex gap-2">
+                                    <label class="star-label">
+                                        <input type="radio" name="rating" value="1" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                    </label>
+                                    <label class="star-label">
+                                        <input type="radio" name="rating" value="2" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                    </label>
+                                    <label class="star-label">
+                                        <input type="radio" name="rating" value="3" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                    </label>
+                                    <label class="star-label">
+                                        <input type="radio" name="rating" value="4" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                    </label>
+                                    <label class="star-label">
+                                        <input type="radio" name="rating" value="5" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                    </label>
+                                </div>
+                                <small class="text-muted">1 = Poor, 5 = Excellent</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Feedback / Comments</label>
+                            <textarea name="feedback" class="form-control" rows="3" placeholder="Share your experience with the delivery service..."></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Report an Issue (Optional)</label>
+                            <textarea name="issueReported" class="form-control" rows="3" placeholder="Describe any issues or discrepancies during the delivery/pickup process..."></textarea>
+                            <small class="text-muted">If you report an issue, an admin will review and contact you.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold w-100 py-3">Submit Rating</button>
+                        <a href="/Customer/DeliverySchedule" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+    }
+    .rating input[type="radio"] {
+        display: none;
+    }
+    .rating .star-label {
+        cursor: pointer;
+    }
+    .rating .star-label i {
+        color: #ddd;
+        transition: color 0.2s;
+    }
+    .rating .star-label:hover i,
+    .rating .star-label:hover ~ .star-label i {
+        color: #D4AF37;
+    }
+    .rating input[type="radio"]:checked ~ .star-label i {
+        color: #D4AF37;
+    }
+    .rating {
+        direction: rtl;
+        display: inline-block;
+    }
+    .rating .star-label {
+        display: inline-block;
+        margin: 0 2px;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.rating input').forEach(star => {
+        star.addEventListener('change', function() {
+            const value = this.value;
+            const stars = document.querySelectorAll('.rating .star-label i');
+            stars.forEach((star, index) => {
+                if (index < value) {
+                    star.classList.add('bi-star-fill');
+                    star.classList.remove('bi-star');
+                } else {
+                    star.classList.add('bi-star');
+                    star.classList.remove('bi-star-fill');
+                }
+            });
+        });
+    });
+</script>

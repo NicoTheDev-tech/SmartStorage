@@ -1,0 +1,146 @@
+﻿@using SmartStorage.Core.Entities
+@{
+    ViewData["Title"] = "Operations Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Operations Reports</h1>
+            <p class="text-muted">Delivery performance and statistics</p>
+        </div>
+        <a href="/Operations/Dashboard" class="btn btn-outline-gold">Back to Dashboard</a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-truck fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">6</h3>
+                    <p class="text-muted">Total Deliveries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-clock-history fs-1 text-warning"></i>
+                    <h3 class="mt-2 mb-0">0</h3>
+                    <p class="text-muted">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                    <h3 class="mt-2 mb-0">3</h3>
+                    <p class="text-muted">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <i class="bi bi-x-circle fs-1 text-danger"></i>
+                    <h3 class="mt-2 mb-0">3</h3>
+                    <p class="text-muted">Cancelled</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Performance Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-4">
+            <h5 class="mb-0"><i class="bi bi-graph-up text-gold"></i> Monthly Performance</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-success">
+                            <td><span class="badge bg-success">Completed</span></td>
+                            <td class="text-center">3</td>
+                            <td class="text-center">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 50%;">
+                                        50%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td><span class="badge bg-danger">Cancelled</span></td>
+                            <td class="text-center">3</td>
+                            <td class="text-center">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 50%;">
+                                        50%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><span class="badge bg-warning">Pending</span></td>
+                            <td class="text-center">0</td>
+                            <td class="text-center">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 0%;">
+                                        0%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="table-info">
+                            <td><span class="badge bg-info">Confirmed</span></td>
+                            <td class="text-center">0</td>
+                            <td class="text-center">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 0%;">
+                                        0%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold { color: var(--gold); }
+    .btn-outline-gold {
+        border: 2px solid var(--gold);
+        color: var(--gold);
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        color: var(--charcoal);
+        border-color: transparent;
+    }
+    .progress {
+        border-radius: 20px;
+    }
+    .progress-bar {
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+</style>

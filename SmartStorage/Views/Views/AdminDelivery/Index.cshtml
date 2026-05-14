@@ -1,0 +1,101 @@
+﻿@model IEnumerable<SmartStorage.Core.DTOs.DeliveryScheduleResponseDto>
+@{
+    ViewData["Title"] = "Pending Deliveries";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Pending Deliveries</h1>
+            <p class="text-muted">Manage and confirm delivery schedules</p>
+        </div>
+        <div>
+            <a href="/Admin/Delivery/Calendar" class="btn btn-outline-gold">
+                <i class="bi bi-calendar"></i> Calendar View
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        @foreach (var schedule in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pt-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="fw-bold mb-1">@schedule.ScheduleNumber</h5>
+                                <p class="text-muted small mb-0">Unit @schedule.UnitNumber</p>
+                            </div>
+                            <span class="badge bg-warning px-3 py-2">Pending</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Type:</span>
+                                <span class="fw-semibold">@schedule.DeliveryType</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Date:</span>
+                                <span class="fw-semibold">@schedule.ScheduledDate.ToString("dd MMM yyyy")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Time:</span>
+                                <span class="fw-semibold">@schedule.TimeSlot</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Items:</span>
+                                <span class="fw-semibold">@schedule.ItemCount items</span>
+                            </div>
+                        </div>
+                        <div class="small text-muted">
+                            <i class="bi bi-person"></i> Contact: @(schedule.ContactPerson ?? "Not provided")
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 pb-4">
+                        <form asp-action="Confirm" asp-route-id="@schedule.Id" method="post" class="d-inline w-100">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-gold w-100" onclick="return confirm('Confirm this delivery schedule?')">
+                                <i class="bi bi-check-circle"></i> Confirm Schedule
+                            </button>
+                        </form>
+                        <a href="/Admin/Delivery/Details/@schedule.Id" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-check-circle fs-1 text-muted"></i>
+                <h4 class="text-muted mt-3">No Pending Deliveries</h4>
+                <p class="text-muted">All delivery schedules have been processed.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: var(--gold);
+    }
+</style>

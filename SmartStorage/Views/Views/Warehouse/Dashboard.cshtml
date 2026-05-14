@@ -1,0 +1,223 @@
+﻿@using SmartStorage.Core.Entities
+@{
+    ViewData["Title"] = "Warehouse Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="mb-2" style="color: #000000;">👋 Welcome, Warehouse Staff!</h1>
+                            <p class="mb-0" style="color: #000000; opacity: 0.8;">Manage goods intake and storage operations</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <i class="bi bi-building" style="font-size: 4rem; color: #000000;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam fs-1 text-warning"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.PendingIntake?.Count</h3>
+                    <p class="text-muted mb-0">Pending Intake</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-truck fs-1 text-info"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.TodayPickups?.Count</h3>
+                    <p class="text-muted mb-0">Today's Pickups</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.CompletedToday</h3>
+                    <p class="text-muted mb-0">Completed Today</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam fs-1 text-gold"></i>
+                    <h3 class="mt-2 mb-0">@ViewBag.StorageUnitsInUse</h3>
+                    <p class="text-muted mb-0">Units in Use</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-building fs-1 text-gold"></i>
+                    <h5 class="mt-2">Storage Occupancy</h5>
+                    <p>Monitor and report on all storage units occupancy levels</p>
+                    <a href="/Warehouse/Occupancy" class="btn btn-gold">View Occupancy</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-badge fs-1 text-info"></i>
+                    <h5 class="mt-2">Assign Drivers</h5>
+                    <p>Assign drivers to transport jobs</p>
+                    <a href="/Warehouse/GoodsIntake" class="btn btn-outline-gold">Manage Assignments</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+            <i class="bi bi-clipboard-check fs-1 text-gold"></i>
+            <h5 class="mt-2">Prepare Transport</h5>
+            <p>Verify goods, complete vehicle checks, and ready paperwork</p>
+            <a href="/Warehouse/ReadyJobs" class="btn btn-gold">View Jobs to Prepare</a>
+        </div>
+    </div>
+</div>
+
+    <!-- Pending Intake Requests with Driver Assignment -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-box-seam text-gold"></i> Pending Intake Requests</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.PendingIntake != null && ViewBag.PendingIntake.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Schedule #</th>
+                                        <th>Client</th>
+                                        <th>Unit</th>
+                                        <th>Date</th>
+                                        <th>Assign Driver</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var schedule in ViewBag.PendingIntake)
+                                    {
+                                        <tr>
+                                            <td>@schedule.ScheduleNumber</td>
+                                            <td>@schedule.Booking?.Client?.FullName</td>
+                                            <td>@schedule.Booking?.StorageUnit?.UnitNumber</td>
+                                            <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                            <td>
+                                                <select class="form-select form-select-sm driver-select" data-schedule-id="@schedule.Id" style="width: 180px;">
+                                                    <option value="">-- Select Driver --</option>
+                                                    @if (ViewBag.AvailableDrivers != null)
+                                                    {
+                                                        foreach (var driver in ViewBag.AvailableDrivers)
+                                                        {
+                                                            <option value="@driver.Id">@driver.FullName - @driver.VehicleAssigned</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <form asp-action="ReceiveGoods" asp-route-id="@schedule.Id" method="post" style="display:inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-primary">Receive</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">No pending intake requests</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold { color: #D4AF37; }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+    }
+    .btn-outline-gold {
+        border: 2px solid #D4AF37;
+        color: #D4AF37;
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        border-color: transparent;
+    }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.driver-select').change(function() {
+            var scheduleId = $(this).data('schedule-id');
+            var driverId = $(this).val();
+            
+            if (driverId) {
+                $.ajax({
+                    url: '/Warehouse/AssignDriver',
+                    type: 'POST',
+                    data: {
+                        scheduleId: scheduleId,
+                        driverId: driverId
+                    },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error assigning driver');
+                    }
+                });
+            }
+        });
+    });
+</script>

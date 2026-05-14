@@ -1,0 +1,259 @@
+﻿@{
+    ViewData["Title"] = "SmartStorage - Premium Storage Solutions in Durban";
+}
+
+<link rel="stylesheet" href="~/css/site.css" />
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1>Secure Storage <span>Made Simple</span> in Durban</h1>
+                <p class="lead">Your trusted partner for premium storage and logistics solutions in Durban, South Africa. Safe, secure, and affordable storage units for all your needs.</p>
+                @if (User?.Identity?.IsAuthenticated == true)
+                {
+                    <a href="/Reserve" class="btn btn-gold me-3">Reserve Now</a>
+                    <a href="/Reserve/MyBookings" class="btn btn-outline-gold">My Bookings</a>
+                }
+                else
+                {
+                    <a href="/Account/Register" class="btn btn-gold me-3">Get Started</a>
+                    <a href="/Account/Login" class="btn btn-outline-gold">Login</a>
+                }
+            </div>
+            <div class="col-lg-6 hero-slide-image">
+                <div class="floating-card">
+                    <img src="/images/boom.jpg" alt="Storage Unit" class="img-fluid rounded-4 shadow-lg" style="max-height: 450px; width: 100%; object-fit: cover;">
+                    <div class="image-overlay">
+                        <i class="bi bi-play-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="section-title fade-up">
+            <h2>Why Choose SmartStorage?</h2>
+            <div class="gold-line"></div>
+            <p>Experience the difference with our premium storage solutions in Durban</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4>24/7 Security</h4>
+                    <p>Advanced surveillance systems and secure access control to protect your belongings at all times.</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-thermometer-snow"></i>
+                    </div>
+                    <h4>Climate Controlled</h4>
+                    <p>Temperature and humidity controlled units to protect sensitive items from damage.</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <h4>Free Pickup & Delivery</h4>
+                    <p>Convenient cartage services to transport your items to and from our facility.</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                    <h4>Flexible Payment</h4>
+                    <p>Monthly or long-term contracts with easy online payment options.</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-geo-alt"></i>
+                    </div>
+                    <h4>Prime Durban Location</h4>
+                    <p>Conveniently located in Durban, easily accessible from all major routes.</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h4>24/7 Support</h4>
+                    <p>Dedicated customer support team ready to assist you anytime.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="section-title fade-up">
+            <h2>Storage Plans</h2>
+            <div class="gold-line"></div>
+            <p>Choose the perfect storage solution for your needs in Durban</p>
+        </div>
+        <div class="row g-4 align-items-center">
+            <div class="col-md-4 fade-left">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Small Unit</h3>
+                        <div class="price">R450 <span>/month</span></div>
+                        <p>10x10 ft • Up to 50 items</p>
+                    </div>
+                    <div class="pricing-body">
+                        <ul>
+                            <li><i class="bi bi-check-circle-fill"></i> 24/7 Access</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Basic Security</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Standard Insurance</li>
+                            <li><i class="bi bi-x-circle-fill"></i> Climate Control</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="/Reserve" class="btn btn-outline-gold w-100">Select Plan</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 scale-in">
+                <div class="pricing-card featured">
+                    <div class="featured-badge">⭐ MOST POPULAR ⭐</div>
+                    <div class="pricing-header">
+                        <h3>Medium Unit</h3>
+                        <div class="price">R850 <span>/month</span></div>
+                        <p>10x20 ft • Up to 100 items</p>
+                    </div>
+                    <div class="pricing-body">
+                        <ul>
+                            <li><i class="bi bi-check-circle-fill"></i> 24/7 Access</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Enhanced Security</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Premium Insurance</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Climate Control</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="/Reserve" class="btn btn-gold w-100">Select Plan</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 fade-right">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Large Unit</h3>
+                        <div class="price">R1,450 <span>/month</span></div>
+                        <p>20x20 ft • Up to 200 items</p>
+                    </div>
+                    <div class="pricing-body">
+                        <ul>
+                            <li><i class="bi bi-check-circle-fill"></i> 24/7 Access</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Premium Security</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Premium Insurance</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Climate Control</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="/Reserve" class="btn btn-outline-gold w-100">Select Plan</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="about-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 fade-left">
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="SmartStorage Facility">
+                </div>
+            </div>
+            <div class="col-lg-6 fade-right">
+                <div class="about-content">
+                    <h3>About <span>SmartStorage</span></h3>
+                    <p>Founded in 2024, SmartStorage is Durban's premier storage and logistics solution provider. We're committed to offering secure, accessible, and affordable storage solutions for individuals and businesses across the city.</p>
+                    <p>With state-of-the-art facilities, advanced security systems, and a dedicated team of professionals, we ensure your belongings are safe and accessible whenever you need them.</p>
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">500+</div>
+                            <div class="stat-label">Storage Units</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">1,000+</div>
+                            <div class="stat-label">Happy Clients</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">24/7</div>
+                            <div class="stat-label">Support</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Location Section -->
+<section class="location-section">
+    <div class="container">
+        <div class="section-title fade-up">
+            <h2>Our Location</h2>
+            <div class="gold-line"></div>
+            <p>Conveniently located in Durban, easily accessible from all areas</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-8 fade-up">
+                <div class="location-card text-center">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <h4>SmartStorage Durban Facility</h4>
+                    <p>25 Umgeni Road, Durban Central</p>
+                    <p>Durban, 4001, South Africa</p>
+                    <p><i class="bi bi-telephone"></i> +27 67 931 4668</p>
+                    <p><i class="bi bi-envelope"></i> snothithabangnicolas@gmail.com</p>
+                    <div class="mt-3">
+                        <i class="bi bi-clock"></i> Open 24/7 - 365 Days a Year
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Scroll Animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-up, .fade-left, .fade-right, .scale-in').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+}

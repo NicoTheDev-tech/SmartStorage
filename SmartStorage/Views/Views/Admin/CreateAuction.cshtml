@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Create Auction";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var assets = ViewBag.Assets as List<SmartStorage.Core.Entities.AssetForSale>;
+}
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h3>Create Auction Listing</h3>
+            <p class="text-muted">Publish an auction for catalogued goods</p>
+        </div>
+        <div class="card-body">
+            <form method="post" action="/Admin/CreateAuction">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="breachCaseId" value="@ViewBag.BreachCaseId" />
+    
+    <div class="mb-3">
+        <label class="form-label">Auction End Date & Time</label>
+        <input type="datetime-local" name="endDate" class="form-control" required />
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">Starting Bid (R)</label>
+        <input type="number" name="startingBid" step="0.01" class="form-control" required />
+    </div>
+    
+    <button type="submit" class="btn btn-gold">Publish Auction</button>
+    <a href="/Admin/BreachCases" class="btn btn-secondary">Cancel</a>
+</form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 5px;
+    }
+</style>

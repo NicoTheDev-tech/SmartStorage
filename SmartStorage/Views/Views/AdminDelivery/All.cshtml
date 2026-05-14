@@ -1,0 +1,70 @@
+﻿@model IEnumerable<SmartStorage.Core.DTOs.DeliveryScheduleResponseDto>
+@{
+    ViewData["Title"] = "All Deliveries";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">All Deliveries</h1>
+            <p class="text-muted">View all delivery schedules</p>
+        </div>
+        <div>
+            <a href="/Admin/Delivery" class="btn btn-outline-gold">
+                <i class="bi bi-clock-history"></i> Pending Only
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Schedule #</th>
+                            <th>Client</th>
+                            <th>Unit</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var schedule in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@schedule.ScheduleNumber</td>
+                                <td>@schedule.ContactPerson</td>
+                                <td>@schedule.UnitNumber</td>
+                                <td>@schedule.DeliveryType</td>
+                                <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                <td>@schedule.TimeSlot</td>
+                                <td>
+                                    @{
+                                        var statusClass = schedule.Status switch
+                                        {
+                                            "Pending" => "warning",
+                                            "Confirmed" => "info",
+                                            "Completed" => "success",
+                                            "Cancelled" => "danger",
+                                            _ => "secondary"
+                                        };
+                                    }
+                                    <span class="badge bg-@statusClass">@schedule.Status</span>
+                                </td>
+                                <td>
+                                    <a href="/Admin/Delivery/Details/@schedule.Id" class="btn btn-sm btn-outline-gold">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,167 @@
+﻿@model SmartStorage.Core.Entities.Auction
+@{
+    ViewData["Title"] = "Auction Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var items = ViewBag.Items as List<SmartStorage.Core.Entities.AuctionItem>;
+    var bids = ViewBag.Bids as List<SmartStorage.Core.Entities.AuctionBid>;
+    var highestBid = bids != null && bids.Any() ? bids.First().BidAmount : Model.StartingBid;
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="text-white mb-2">@Model.AuctionNumber</h1>
+                            <p class="text-white-50 mb-0">Place your bids on available items</p>
+                        </div>
+                        <a href="/Customer/Auctions" class="btn btn-outline-light">← Back to Auctions</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">End Date</h6>
+                    <p class="fw-bold">@Model.EndDate.ToString("dd MMM yyyy HH:mm")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Starting Bid</h6>
+                    <p class="fw-bold text-gold">R @Model.StartingBid.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Highest Bid</h6>
+                    <p class="fw-bold text-success">R @highestBid.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Place Your Bid</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-controller="Customer" asp-action="PlaceBid">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="auctionId" value="@Model.Id" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="number" name="bidAmount" step="50" class="form-control" placeholder="Enter bid amount" required />
+                        <small>Minimum increment: R50 above highest bid</small>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-gold w-100">Place Bid</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Auction Items -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Auction Items</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Reserve Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (items != null && items.Any())
+                    {
+                        @foreach (var item in items)
+                        {
+                            <tr>
+                                <td>@item.ItemName</td>
+                                <td>R @item.ReservePrice.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center">No items</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bid History -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Bid History</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Bidder</th>
+                        <th>Amount</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (bids != null && bids.Any())
+                    {
+                        @foreach (var bid in bids)
+                        {
+                            <tr>
+                                <td>@bid.BidderName</td>
+                                <td class="fw-bold text-success">R @bid.BidAmount.ToString("N2")</td>
+                                <td>@bid.BidTime.ToString("dd MMM HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center">No bids yet</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold { color: #D4AF37; }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+    }
+</style>

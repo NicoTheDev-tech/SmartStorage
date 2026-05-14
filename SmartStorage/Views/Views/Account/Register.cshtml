@@ -1,0 +1,126 @@
+﻿@model SmartStorage.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-dark text-white text-center rounded-top-4">
+                    <i class="bi bi-person-plus fs-1"></i>
+                    <h2 class="h4 mb-0 mt-2">Create Your Account</h2>
+                    <p class="small text-gold mb-0">Join SmartStorage today</p>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Register" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Full Name -->
+                        <div class="form-floating mb-3">
+                            <input asp-for="FullName" class="form-control" placeholder="Full Name" />
+                            <label asp-for="FullName">
+                                <i class="bi bi-person-badge me-1"></i> Full Name
+                            </label>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Preferred Name -->
+                        <div class="form-floating mb-3">
+                            <input asp-for="PreferredName" class="form-control" placeholder="Preferred Name" />
+                            <label asp-for="PreferredName">
+                                <i class="bi bi-person-heart me-1"></i> Preferred Name
+                            </label>
+                            <span asp-validation-for="PreferredName" class="text-danger small"></span>
+                            <div class="form-text">How you'd like us to address you</div>
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" placeholder="Email Address" type="email" />
+                            <label asp-for="Email">
+                                <i class="bi bi-envelope me-1"></i> Email Address
+                            </label>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
+                            <label asp-for="Password">
+                                <i class="bi bi-key me-1"></i> Password
+                            </label>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                            <div class="form-text">Password must be at least 6 characters</div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="form-floating mb-4">
+                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" type="password" />
+                            <label asp-for="ConfirmPassword">
+                                <i class="bi bi-key-fill me-1"></i> Confirm Password
+                            </label>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-gold w-100 py-3">
+                            <i class="bi bi-person-plus me-2"></i> Register
+                        </button>
+
+                        <hr class="my-4" />
+
+                        <!-- Login Link -->
+                        <p class="text-center mb-0">
+                            Already have an account?
+                            <a asp-controller="Account" asp-action="Login" class="text-gold text-decoration-none">
+                                <i class="bi bi-box-arrow-in-right"></i> Login here
+                            </a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        color: #1A1A1A;
+    }
+
+    .form-floating > .form-control:focus {
+        border-color: #D4AF37;
+        box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+    }
+
+    .card {
+        background: #FFFFFF;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #2C2C2C 0%, #1A1A1A 100%);
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

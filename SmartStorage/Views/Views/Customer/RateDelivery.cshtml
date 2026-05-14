@@ -1,0 +1,156 @@
+﻿@using SmartStorage.Core.Entities
+@model SmartStorage.Core.Entities.DeliverySchedule
+@{
+    ViewData["Title"] = "Rate Delivery Service";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-dark text-white text-center rounded-top-4 py-4">
+                    <i class="bi bi-star-fill fs-1 text-gold"></i>
+                    <h3 class="mb-0 mt-2">Rate Your Delivery Service</h3>
+                    <p class="text-gold mt-2 mb-0">Help us improve our service</p>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        
+                        <script>
+                            setTimeout(function() {
+                                window.location.href = '/Customer/Dashboard';
+                            }, 2000);
+                        </script>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h5>Delivery Details</h5>
+                        <hr />
+                        <p><strong>Schedule #:</strong> @Model.ScheduleNumber</p>
+                        <p><strong>Delivery Date:</strong> @Model.ScheduledDate.ToString("dd MMM yyyy")</p>
+                        <p><strong>Delivery Type:</strong> @Model.DeliveryType</p>
+                    </div>
+
+                    <form method="post" action="/Customer/RateDelivery">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Rating *</label>
+                            <div class="rating-stars">
+                                <div class="d-flex gap-3" style="direction: ltr;">
+                                    <label class="star-label" data-value="1">
+                                        <input type="radio" name="rating" value="1" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                        <span class="d-block small mt-1">Poor</span>
+                                    </label>
+                                    <label class="star-label" data-value="2">
+                                        <input type="radio" name="rating" value="2" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                        <span class="d-block small mt-1">Fair</span>
+                                    </label>
+                                    <label class="star-label" data-value="3">
+                                        <input type="radio" name="rating" value="3" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                        <span class="d-block small mt-1">Good</span>
+                                    </label>
+                                    <label class="star-label" data-value="4">
+                                        <input type="radio" name="rating" value="4" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                        <span class="d-block small mt-1">Very Good</span>
+                                    </label>
+                                    <label class="star-label" data-value="5">
+                                        <input type="radio" name="rating" value="5" required />
+                                        <i class="bi bi-star fs-1"></i>
+                                        <span class="d-block small mt-1">Excellent</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Feedback / Comments</label>
+                            <textarea name="feedback" class="form-control" rows="3" placeholder="Share your experience with the delivery service..."></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Report an Issue (Optional)</label>
+                            <textarea name="issueReported" class="form-control" rows="3" placeholder="Describe any issues or discrepancies during the delivery/pickup process..."></textarea>
+                            <small class="text-muted">If you report an issue, an admin will review and contact you.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold w-100 py-3">Submit Rating</button>
+                        <a href="/Customer/DeliverySchedule" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212,175,55,0.3);
+    }
+    .rating-stars .star-label {
+        cursor: pointer;
+        text-align: center;
+    }
+    .rating-stars .star-label i {
+        color: #ddd;
+        transition: color 0.2s;
+        font-size: 2rem;
+    }
+    .rating-stars .star-label.active i,
+    .rating-stars .star-label:hover i {
+        color: #D4AF37;
+    }
+    .rating-stars input[type="radio"] {
+        display: none;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.rating-stars .star-label').forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            document.querySelectorAll('.rating-stars .star-label').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.rating-stars .star-label').forEach(s => {
+                const starValue = parseInt(s.getAttribute('data-value'));
+                if (starValue <= parseInt(value)) {
+                    s.classList.add('active');
+                }
+            });
+        });
+    });
+</script>

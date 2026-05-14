@@ -1,0 +1,98 @@
+﻿@using SmartStorage.Core.Entities
+@model IEnumerable<SmartStorage.Core.Entities.StorageUnit>
+
+@{
+    ViewData["Title"] = "Storage Map";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold">Storage Map</h1>
+            <p class="text-muted">Visual view of all storage units</p>
+        </div>
+        <a href="/Warehouse/Dashboard" class="btn btn-outline-gold">Back to Dashboard</a>
+    </div>
+
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var unit in Model.OrderBy(u => u.UnitNumber))
+            {
+                <div class="col-md-3 col-lg-2">
+                    <div class="card text-center border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">@unit.UnitNumber</h5>
+                            <p class="card-text small">@unit.Size</p>
+                            <p class="card-text small text-muted">@unit.Location</p>
+                            <span class="badge @(unit.IsActive ? "bg-success" : "bg-danger")">
+                                @(unit.IsActive ? "Available" : "Inactive")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No storage units found</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .btn-outline-gold {
+        border: 2px solid var(--gold);
+        color: var(--gold);
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-gold:hover {
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        color: var(--charcoal);
+        border-color: transparent;
+    }
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        $('.driver-select').change(function() {
+            var scheduleId = $(this).data('schedule-id');
+            var driverId = $(this).val();
+            
+            if (driverId) {
+                $.ajax({
+                    url: '/Warehouse/AssignDriver',
+                    type: 'POST',
+                    data: {
+                        scheduleId: scheduleId,
+                        driverId: driverId
+                    },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            location.reload();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error assigning driver');
+                    }
+                });
+            }
+        });
+    });
+</script>

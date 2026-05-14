@@ -1,0 +1,179 @@
+﻿@model SmartStorage.Core.Entities.StorageUnit
+@{
+    ViewData["Title"] = "Add New Unit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-dark text-white rounded-top-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-plus-circle fs-3 me-3"></i>
+                        <div>
+                            <h3 class="mb-0">Add New Storage Unit</h3>
+                            <p class="mb-0 text-gold">Create a new storage unit in the warehouse</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="AddUnit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="UnitNumber" class="form-label fw-bold">
+                                    <i class="bi bi-tag me-1"></i>Unit Number
+                                </label>
+                                <input asp-for="UnitNumber" class="form-control" placeholder="e.g., A101, B202" />
+                                <span asp-validation-for="UnitNumber" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Size" class="form-label fw-bold">
+                                    <i class="bi bi-aspect-ratio me-1"></i>Size
+                                </label>
+                                <select asp-for="Size" class="form-select">
+                                    <option value="">Select Size</option>
+                                    <option value="5x5">5x5 (Small)</option>
+                                    <option value="10x10">10x10 (Medium)</option>
+                                    <option value="10x20">10x20 (Large)</option>
+                                    <option value="15x15">15x15 (X-Large)</option>
+                                    <option value="20x20">20x20 (XX-Large)</option>
+                                    <option value="Vehicle Bay">Vehicle Bay</option>
+                                    <option value="Covered Vehicle">Covered Vehicle</option>
+                                    <option value="Boat Storage">Boat Storage</option>
+                                    <option value="RV Storage">RV Storage</option>
+                                </select>
+                                <span asp-validation-for="Size" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Location" class="form-label fw-bold">
+                                    <i class="bi bi-geo-alt me-1"></i>Location
+                                </label>
+                                <select asp-for="Location" class="form-select">
+                                    <option value="">Select Location</option>
+                                    <option value="Durban Central">Durban Central</option>
+                                    <option value="Umhlanga">Umhlanga</option>
+                                    <option value="Westville">Westville</option>
+                                    <option value="Pinetown">Pinetown</option>
+                                </select>
+                                <span asp-validation-for="Location" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ClimateControl" class="form-label fw-bold">
+                                    <i class="bi bi-thermometer-snow me-1"></i>Climate Control
+                                </label>
+                                <select asp-for="ClimateControl" class="form-select">
+                                    <option value="None">None</option>
+                                    <option value="Basic">Basic</option>
+                                    <option value="Premium">Premium</option>
+                                </select>
+                                <span asp-validation-for="ClimateControl" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="MonthlyRate" class="form-label fw-bold">
+                                    <i class="bi bi-currency-dollar me-1"></i>Monthly Rate (R)
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R</span>
+                                    <input asp-for="MonthlyRate" class="form-control" type="number" step="10" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="MonthlyRate" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-gold px-4 py-2">
+                                <i class="bi bi-save me-2"></i>Save Unit
+                            </button>
+                            <a href="@Url.Action("Inventory")" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold {
+        color: #D4AF37;
+    }
+    
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        color: #1A1A1A;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #2C2C2C 0%, #1A1A1A 100%);
+    }
+    
+    .rounded-top-4 {
+        border-top-left-radius: 1rem !important;
+        border-top-right-radius: 1rem !important;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #D4AF37;
+        box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+    <script>
+    $(document).ready(function() {
+        $('.driver-select').change(function() {
+            var scheduleId = $(this).data('schedule-id');
+            var driverId = $(this).val();
+            
+            if (driverId) {
+                $.ajax({
+                    url: '/Warehouse/AssignDriver',
+                    type: 'POST',
+                    data: {
+                        scheduleId: scheduleId,
+                        driverId: driverId
+                    },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            location.reload();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error assigning driver');
+                    }
+                });
+            }
+        });
+    });
+</script>

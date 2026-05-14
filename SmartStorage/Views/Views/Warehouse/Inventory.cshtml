@@ -1,0 +1,270 @@
+﻿@model IEnumerable<SmartStorage.Core.Entities.StorageUnit>
+@{
+    ViewData["Title"] = "Inventory Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">
+                <i class="bi bi-list-check me-2"></i>Inventory Management
+            </h1>
+            <p class="text-muted">Manage and track all storage units in the warehouse</p>
+        </div>
+        <div class="col-auto">
+            <a href="@Url.Action("AddUnit", "Warehouse")" class="btn btn-gold">
+                <i class="bi bi-plus-circle me-2"></i>Add New Unit
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="searchTerm" class="form-control" placeholder="Search by unit number or location" value="@ViewBag.SearchTerm" />
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="true" selected="@(ViewBag.Status == "true")">Active</option>
+                        <option value="false" selected="@(ViewBag.Status == "false")">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="climateControl" class="form-select">
+                        <option value="">All Climate Control</option>
+                        <option value="None">None</option>
+                        <option value="Basic">Basic</option>
+                        <option value="Premium">Premium</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-dark w-100">
+                        <i class="bi bi-search me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Unit Number</th>
+                            <th>Size</th>
+                            <th>Location</th>
+                            <th>Climate Control</th>
+                            <th>Monthly Rate</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var unit in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@unit.UnitNumber</td>
+                                    <td>@unit.Size</td>
+                                    <td>@unit.Location</td>
+                                    <td>
+                                        @if (unit.ClimateControl == "Premium")
+                                        {
+                                            <span class="badge bg-gold text-dark">Premium</span>
+                                        }
+                                        else if (unit.ClimateControl == "Basic")
+                                        {
+                                            <span class="badge bg-secondary">Basic</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">None</span>
+                                        }
+                                    </td>
+                                    <td>R @unit.MonthlyRate.ToString("N2")</td>
+                                    <td>
+                                        @if (unit.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("EditUnit", "Warehouse", new { id = unit.Id })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-info view-unit" data-id="@unit.Id">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        @if (unit.IsActive)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="toggleStatus(@unit.Id, false)">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="toggleStatus(@unit.Id, true)">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No storage units found</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i&searchTerm=@ViewBag.SearchTerm&status=@ViewBag.Status">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Single Modal for all units (no duplicate IDs) -->
+<div class="modal fade" id="unitModal" tabindex="-1" aria-labelledby="unitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="unitModalLabel">Unit Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="unitModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-gold" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading unit details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gold, .bg-gold {
+        color: #D4AF37 !important;
+    }
+
+    .bg-gold {
+        background-color: #D4AF37 !important;
+    }
+
+    .btn-gold {
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        color: #1A1A1A;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        color: #1A1A1A;
+    }
+
+    .btn-outline-primary {
+        border-color: #D4AF37;
+        color: #D4AF37;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #D4AF37;
+        border-color: #D4AF37;
+        color: #1A1A1A;
+    }
+
+    .table > :not(caption) > * > * {
+        vertical-align: middle;
+    }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Make sure DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all view buttons
+        var viewButtons = document.querySelectorAll('.view-unit');
+
+        viewButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                var unitId = this.getAttribute('data-id');
+                var modal = document.getElementById('unitModal');
+                var modalBody = document.getElementById('unitModalBody');
+
+                // Show loading state
+                modalBody.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-gold" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading unit details...</p>
+                    </div>
+                `;
+
+                // Fetch unit details
+                fetch(`/Warehouse/GetUnitDetails/${unitId}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        modalBody.innerHTML = data;
+                    })
+                    .catch(error => {
+                        modalBody.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Error loading unit details. Please try again.
+                            </div>
+                        `;
+                    });
+
+                // Show modal using Bootstrap 5
+                var bootstrapModal = new bootstrap.Modal(modal);
+                bootstrapModal.show();
+            });
+        });
+    });
+
+    function toggleStatus(unitId, isActive) {
+        const action = isActive ? 'activate' : 'deactivate';
+        if (confirm(`Are you sure you want to ${action} this unit?`)) {
+            window.location.href = `/Warehouse/ToggleUnitStatus?id=${unitId}&isActive=${isActive}`;
+        }
+    }
+</script>
